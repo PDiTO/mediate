@@ -104,8 +104,8 @@ export default function Navbar() {
               </>
             )}
             <Wallet>
-              <ConnectWallet className="bg-red-500">
-                <ConnectWalletText>LaunchA</ConnectWalletText>
+              <ConnectWallet className="bg-black bg-opacity-10 rounded-3xl hover:bg-opacity-5">
+                <ConnectWalletText>Launch App</ConnectWalletText>
               </ConnectWallet>
               <WalletDropdown>
                 <WalletDropdownDisconnect />
