@@ -2,16 +2,99 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hero gradient - Blue to Green */
+@keyframes gradient-hero {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+/* How it Works gradient - Teal focused */
+@keyframes gradient-how {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Use Cases gradient - Deep Blue focused */
+@keyframes gradient-cases {
+  0% {
+    background-position: 50% 0%;
+  }
+  50% {
+    background-position: 50% 100%;
+  }
+  100% {
+    background-position: 50% 0%;
+  }
+}
+
+/* Technology gradient - Blue to Teal */
+@keyframes gradient-tech {
+  0% {
+    background-position: 100% 0%;
+  }
+  50% {
+    background-position: 0% 100%;
+  }
+  100% {
+    background-position: 100% 0%;
+  }
+}
+
+/* Community gradient - Green to Blue */
+@keyframes gradient-community {
+  0% {
+    background-position: 0% 100%;
+  }
+  50% {
+    background-position: 100% 0%;
+  }
+  100% {
+    background-position: 0% 100%;
+  }
+}
+
+.animate-gradient-hero {
+  animation: gradient-hero 20s ease infinite;
+  background-size: 200% 200%;
+}
+
+.animate-gradient-how {
+  animation: gradient-how 25s ease infinite;
+  background-size: 200% 200%;
+}
+
+.animate-gradient-cases {
+  animation: gradient-cases 30s ease infinite;
+  background-size: 200% 200%;
+}
+
+.animate-gradient-tech {
+  animation: gradient-tech 25s ease infinite;
+  background-size: 200% 200%;
+}
+
+.animate-gradient-community {
+  animation: gradient-community 20s ease infinite;
+  background-size: 200% 200%;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
