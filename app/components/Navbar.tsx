@@ -8,7 +8,6 @@ import {
   WalletDropdown,
   WalletDropdownDisconnect,
 } from "@coinbase/onchainkit/wallet";
-import { Name } from "@coinbase/onchainkit/identity";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);

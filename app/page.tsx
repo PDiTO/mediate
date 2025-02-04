@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function Home() {
-  const { isConnected, address } = useAccount();
+  const { isConnected } = useAccount();
   const router = useRouter();
 
   // Redirect to dashboard when connected
