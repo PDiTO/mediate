@@ -2,8 +2,21 @@
 
 import TypeWriter from "./components/TypeWriter";
 import Navbar from "./components/Navbar";
+import { useAccount } from "wagmi";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function Home() {
+  const { isConnected, address } = useAccount();
+  const router = useRouter();
+
+  // Redirect to dashboard when connected
+  useEffect(() => {
+    if (isConnected) {
+      router.push("/dashboard");
+    }
+  }, [isConnected, router]);
+
   const questions = [
     "How can we resolve this dispute?",
     "What's the fairest outcome for both parties?",
@@ -11,6 +24,11 @@ export default function Home() {
     "Can you allocate funds based on the submitted proposals?",
     "Please escrow the funds for this bet.",
   ];
+
+  // Don't render the main content while redirecting
+  if (isConnected) {
+    return null;
+  }
 
   return (
     <div className="relative">
@@ -22,8 +40,8 @@ export default function Home() {
         className="relative min-h-screen flex items-center justify-center overflow-hidden"
       >
         <div className="absolute inset-0 bg-gradient-to-br from-blue-400 via-teal-300 to-emerald-500 animate-gradient-hero"></div>
-        <div className="relative z-10 text-center">
-          <h1 className="text-9xl font-serif text-white tracking-tight mb-2">
+        <div className="relative z-10 text-center flex flex-col items-center gap-2">
+          <h1 className="text-9xl font-serif text-white tracking-tight">
             Mediate
           </h1>
           <TypeWriter sentences={questions} />
