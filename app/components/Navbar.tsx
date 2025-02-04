@@ -25,6 +25,19 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [scrolled]);
 
+  const scrollToSection = (sectionId: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+      // Update URL without jump
+      window.history.pushState({}, "", `/#${sectionId}`);
+    }
+  };
+
   return (
     <nav
       className={`fixed top-0 left-0 w-full z-50 transition-colors duration-300 ${
@@ -40,6 +53,7 @@ export default function Navbar() {
           {/* Logo and Brand */}
           <Link
             href={isConnected ? "/dashboard" : "/#home"}
+            onClick={!isConnected ? scrollToSection("home") : undefined}
             className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity"
           >
             <div
@@ -77,30 +91,34 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <Link
+                <a
                   href="/#how-it-works"
-                  className="text-white/90 hover:text-white transition-colors"
+                  onClick={scrollToSection("how-it-works")}
+                  className="text-white/90 hover:text-white transition-colors cursor-pointer"
                 >
                   How it Works
-                </Link>
-                <Link
+                </a>
+                <a
                   href="/#cases"
-                  className="text-white/90 hover:text-white transition-colors"
+                  onClick={scrollToSection("cases")}
+                  className="text-white/90 hover:text-white transition-colors cursor-pointer"
                 >
                   Use Cases
-                </Link>
-                <Link
+                </a>
+                <a
                   href="/#technology"
-                  className="text-white/90 hover:text-white transition-colors"
+                  onClick={scrollToSection("technology")}
+                  className="text-white/90 hover:text-white transition-colors cursor-pointer"
                 >
                   Technology
-                </Link>
-                <Link
+                </a>
+                <a
                   href="/#community"
-                  className="text-white/90 hover:text-white transition-colors"
+                  onClick={scrollToSection("community")}
+                  className="text-white/90 hover:text-white transition-colors cursor-pointer"
                 >
                   Community
-                </Link>
+                </a>
               </>
             )}
             <Wallet>
