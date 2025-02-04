@@ -1,7 +1,7 @@
 "use client";
 
-import TypeWriter from "./components/TypeWriter";
-import Navbar from "./components/Navbar";
+import TypeWriter from "../components/TypeWriter";
+import Navbar from "../components/Navbar";
 import { useAccount } from "wagmi";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";

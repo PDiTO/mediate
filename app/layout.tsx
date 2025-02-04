@@ -4,7 +4,7 @@ import { Geist, Geist_Mono, Bodoni_Moda } from "next/font/google";
 import "./globals.css";
 import "@coinbase/onchainkit/styles.css";
 
-import { Providers } from "./components/Providers";
+import { Providers } from "../components/Providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
