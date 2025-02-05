@@ -1,5 +1,5 @@
 import { Mediation } from "../types/mediation";
-import { MODEL_IDS } from "../types/models";
+import { MODEL_IDS } from "../lib/models/models";
 
 export const testMediations: Mediation[] = [
   {

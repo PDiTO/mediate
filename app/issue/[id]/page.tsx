@@ -14,7 +14,7 @@ import {
   Bot,
 } from "lucide-react";
 import { format } from "date-fns";
-import { MODEL_NAMES, MODEL_DESCRIPTIONS } from "../../../types/models";
+import { MODEL_NAMES, MODEL_DESCRIPTIONS } from "../../../lib/models/models";
 
 export default function IssueDetails({
   params,

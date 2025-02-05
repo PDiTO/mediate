@@ -9,7 +9,7 @@ import {
   MODEL_NAMES,
   MODEL_DESCRIPTIONS,
   ModelId,
-} from "../../types/models";
+} from "../../lib/models/models";
 import { Bot, Plus, X, Loader2 } from "lucide-react";
 
 interface Party {

@@ -73,6 +73,8 @@ The amounts should be numbers representing the fair split of the total disputed 
         ],
       });
 
+      console.log("Completion:", completion);
+
       let completionObject = completion;
       if (typeof completion === "string") {
         try {
@@ -89,27 +91,3 @@ The amounts should be numbers representing the fair split of the total disputed 
     }
   }
 }
-
-// Example usage:
-/*
-const reasoningTool = new ReasoningTool();
-const input = {
-  systemPrompt: "You are a resolution expert...",
-  description: "Contract dispute regarding payment for services rendered.",
-  parties: [
-    {
-      address: "0x123...abc",
-      evidence: "I didn't get paid for my work...",
-      minSplit: 50
-    },
-    {
-      address: "0x456...def",
-      evidence: "The quality of the work was not good...",
-      minSplit: 75
-    }
-  ]
-};
-
-const result = await reasoningTool.call(JSON.stringify(input));
-console.log(result);
-*/

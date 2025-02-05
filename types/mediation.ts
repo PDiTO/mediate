@@ -1,4 +1,4 @@
-import { ModelId } from "./models";
+import { ModelId } from "../lib/models/models";
 
 export interface Mediation {
   id: string;
@@ -10,4 +10,10 @@ export interface Mediation {
   mediator?: string; // wallet address
   creator: string; // wallet address
   mediatorModel?: ModelId; // AI model ID
+}
+
+export interface MediationEvidence {
+  address: string;
+  evidence: string;
+  minSplit?: number;
 }

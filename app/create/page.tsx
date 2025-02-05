@@ -9,7 +9,7 @@ import {
   MODEL_NAMES,
   MODEL_DESCRIPTIONS,
   ModelId,
-} from "../../types/models";
+} from "../../lib/models/models";
 import { Bot, Plus, X } from "lucide-react";
 
 export default function CreateIssue() {
