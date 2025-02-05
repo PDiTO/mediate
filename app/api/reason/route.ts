@@ -26,10 +26,10 @@ let agentConfig: any = null;
  */
 function validateEnvironment(): boolean {
   const requiredVars = [
-    "NEXT_PUBLIC_OPENAI_API_KEY",
-    "NEXT_PUBLIC_CDP_API_KEY_NAME",
-    "NEXT_PUBLIC_CDP_API_KEY_PRIVATE_KEY",
-    "NEXT_PUBLIC_SERPER_API_KEY",
+    "OPENAI_API_KEY",
+    "CDP_API_KEY_NAME",
+    "CDP_API_KEY_PRIVATE_KEY",
+    "SERPER_API_KEY",
   ];
 
   const missingVars = requiredVars.filter((varName) => !process.env[varName]);
@@ -52,15 +52,17 @@ async function initializeAgent() {
 
   try {
     const llm = new ChatOpenAI({
-      model: process.env.NEXT_PUBLIC_MODEL_NAME ?? "gpt-4o-mini",
+      model: process.env.MODEL_NAME ?? "gpt-4o-mini",
     });
 
     // Configure CDP Wallet Provider
     const config = {
-      apiKeyName: process.env.NEXT_PUBLIC_CDP_API_KEY_NAME!,
-      apiKeyPrivateKey:
-        process.env.NEXT_PUBLIC_CDP_API_KEY_PRIVATE_KEY!.replace(/\\n/g, "\n"),
-      networkId: process.env.NEXT_PUBLIC_NETWORK_ID || "base-sepolia",
+      apiKeyName: process.env.CDP_API_KEY_NAME!,
+      apiKeyPrivateKey: process.env.CDP_API_KEY_PRIVATE_KEY!.replace(
+        /\\n/g,
+        "\n"
+      ),
+      networkId: process.env.NETWORK_ID || "base-sepolia",
     };
 
     const walletProvider = await CdpWalletProvider.configureWithWallet(config);
@@ -74,27 +76,25 @@ async function initializeAgent() {
         walletActionProvider(),
         erc20ActionProvider(),
         cdpApiActionProvider({
-          apiKeyName: process.env.NEXT_PUBLIC_CDP_API_KEY_NAME!,
-          apiKeyPrivateKey:
-            process.env.NEXT_PUBLIC_CDP_API_KEY_PRIVATE_KEY!.replace(
-              /\\n/g,
-              "\n"
-            ),
+          apiKeyName: process.env.CDP_API_KEY_NAME!,
+          apiKeyPrivateKey: process.env.CDP_API_KEY_PRIVATE_KEY!.replace(
+            /\\n/g,
+            "\n"
+          ),
         }),
         cdpWalletActionProvider({
-          apiKeyName: process.env.NEXT_PUBLIC_CDP_API_KEY_NAME!,
-          apiKeyPrivateKey:
-            process.env.NEXT_PUBLIC_CDP_API_KEY_PRIVATE_KEY!.replace(
-              /\\n/g,
-              "\n"
-            ),
+          apiKeyName: process.env.CDP_API_KEY_NAME!,
+          apiKeyPrivateKey: process.env.CDP_API_KEY_PRIVATE_KEY!.replace(
+            /\\n/g,
+            "\n"
+          ),
         }),
       ],
     });
 
     const tools = [
       ...(await getLangChainTools(agentkit)),
-      new Serper(process.env.NEXT_PUBLIC_SERPER_API_KEY!),
+      new Serper(process.env.SERPER_API_KEY!),
     ];
 
     // Store buffered conversation history in memory

@@ -7,7 +7,9 @@ import {
   ConnectWalletText,
   WalletDropdown,
   WalletDropdownDisconnect,
+  WalletDropdownFundLink,
 } from "@coinbase/onchainkit/wallet";
+import { Address, Identity } from "@coinbase/onchainkit/identity";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -71,22 +73,16 @@ export default function Navbar() {
             {isConnected ? (
               <>
                 <Link
-                  href="/dashboard/mediations"
+                  href="/dashboard"
                   className="text-white/90 hover:text-white transition-colors"
                 >
                   My Mediations
                 </Link>
                 <Link
-                  href="/dashboard/create"
+                  href="/create"
                   className="text-white/90 hover:text-white transition-colors"
                 >
                   Create New
-                </Link>
-                <Link
-                  href="/dashboard/settings"
-                  className="text-white/90 hover:text-white transition-colors"
-                >
-                  Settings
                 </Link>
               </>
             ) : (
@@ -122,11 +118,26 @@ export default function Navbar() {
               </>
             )}
             <Wallet>
-              <ConnectWallet className="bg-black bg-opacity-10 rounded-3xl hover:bg-opacity-5">
-                <ConnectWalletText>Launch App</ConnectWalletText>
+              <ConnectWallet className="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-lg backdrop-blur-sm transition-all">
+                {isConnected ? (
+                  <Address
+                    className="text-white text-md font-bold"
+                    hasCopyAddressOnClick={false}
+                  />
+                ) : (
+                  <ConnectWalletText>Launch App</ConnectWalletText>
+                )}
               </ConnectWallet>
-              <WalletDropdown>
-                <WalletDropdownDisconnect />
+
+              <WalletDropdown className="bg-transparent text-white rounded-lg backdrop-blur-sm transition-all">
+                <Identity
+                  className="bg-white/20 hover:bg-white/30 text-white py-3"
+                  hasCopyAddressOnClick
+                >
+                  <Address className="text-white text-md font-bold" />
+                </Identity>
+                <WalletDropdownFundLink className="bg-white/20 hover:bg-white/30 text-white transition-all" />
+                <WalletDropdownDisconnect className="bg-white/20 hover:bg-white/30 text-white transition-all" />
               </WalletDropdown>
             </Wallet>
           </div>
