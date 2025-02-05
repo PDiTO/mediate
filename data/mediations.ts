@@ -1,4 +1,5 @@
 import { Mediation } from "../types/mediation";
+import { MODEL_IDS } from "../types/models";
 
 export const testMediations: Mediation[] = [
   {
@@ -10,6 +11,7 @@ export const testMediations: Mediation[] = [
     status: "funded",
     parties: ["0x1234...", "0x5678..."],
     creator: "0x2E14e1cBb0c387F85AdAc2E31fd473db7FAe647F",
+    mediatorModel: MODEL_IDS.DEEPSEEK_R1_671B_DISPUTE,
   },
   {
     id: "2",
@@ -21,6 +23,7 @@ export const testMediations: Mediation[] = [
     parties: ["0x91011...", "0x1213..."],
     mediator: "0x1415...",
     creator: "0x2E14e1cBb0c387F85AdAc2E31fd473db7FAe647F",
+    mediatorModel: MODEL_IDS.DEEPSEEK_R1_671B_DISPUTE,
   },
   {
     id: "3",
@@ -31,6 +34,7 @@ export const testMediations: Mediation[] = [
     parties: ["0x1617...", "0x1819..."],
     mediator: "0x2021...",
     creator: "0x2E14e1cBb0c387F85AdAc2E31fd473db7FAe647F",
+    mediatorModel: MODEL_IDS.DEEPSEEK_R1_671B_FUND,
   },
   {
     id: "4",
@@ -41,6 +45,7 @@ export const testMediations: Mediation[] = [
     parties: ["0x2223...", "0x2425..."],
     mediator: "0x2627...",
     creator: "0x2E14e1cBb0c387F85AdAc2E31fd473db7FAe647F",
+    mediatorModel: MODEL_IDS.DEEPSEEK_R1_671B_FUND,
   },
   {
     id: "5",
@@ -48,8 +53,9 @@ export const testMediations: Mediation[] = [
     description: "Disagreement about vesting schedule implementation",
     createdAt: "2024-03-05T11:45:00Z",
     status: "resolved",
-    parties: ["0x2829...", "0x3031..."],
+    parties: ["0x2E14e1cBb0c387F85AdAc2E31fd473db7FAe647F", "0x3031..."],
     mediator: "0x3233...",
     creator: "0x2E14e1cBb0c387F85AdAc2E31fd473db7FAe647F",
+    mediatorModel: MODEL_IDS.DEEPSEEK_R1_671B_DISPUTE,
   },
 ];

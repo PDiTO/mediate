@@ -1,17 +1,17 @@
-import { createSiweMessage, SiweMessage } from "viem/siwe";
-import { baseSepolia } from "viem/chains";
+import {
+  createSiweMessage,
+  generateSiweNonce,
+  verifySiweMessage,
+} from "viem/siwe";
 
-export function generateSiweMessage(address: `0x${string}`, nonce: string) {
-  const expirationDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
+export function createSignedMessage(address: `0x${string}`, chainId: number) {
   return createSiweMessage({
-    address,
-    chainId: baseSepolia.id,
+    address: address,
+    chainId: chainId,
     domain: window.location.host,
-    uri: window.location.origin,
+    nonce: generateSiweNonce(),
+    uri: window.location.origin + window.location.pathname,
     version: "1",
-    nonce,
-    statement: "Sign in to Mediate",
-    expirationTime: expirationDate,
+    statement: "Sign in to Mediate Platform",
   });
 }

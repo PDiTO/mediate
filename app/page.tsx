@@ -18,11 +18,10 @@ export default function Home() {
   }, [isConnected, router]);
 
   const questions = [
-    "How can we resolve this dispute?",
-    "What's the fairest outcome for both parties?",
-    "Can you help mediate our agreement?",
-    "Can you allocate funds based on the submitted proposals?",
-    "Please escrow the funds for this bet.",
+    "Can you help negotiate a settlement?",
+    "Can you allocate the funds based on the submitted proposals?",
+    "What's the fairest outcome following this whitehat exploit?",
+    "Please can you  escrow the funds for this bet?",
   ];
 
   // Don't render the main content while redirecting

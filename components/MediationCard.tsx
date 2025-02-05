@@ -5,8 +5,11 @@ import {
   CheckCircle2,
   XCircle,
   CircleDollarSign,
+  ShieldCheck,
+  UsersRound,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAccount } from "wagmi";
 
 interface MediationCardProps {
   mediation: Mediation;
@@ -14,6 +17,7 @@ interface MediationCardProps {
 
 export default function MediationCard({ mediation }: MediationCardProps) {
   const router = useRouter();
+  const { address } = useAccount();
 
   const statusConfig = {
     open: {
@@ -36,6 +40,12 @@ export default function MediationCard({ mediation }: MediationCardProps) {
 
   const StatusIcon = statusConfig[mediation.status].icon;
 
+  // Determine user's role
+  const isCreator = address?.toLowerCase() === mediation.creator.toLowerCase();
+  const isParty = mediation.parties.some(
+    (party) => party.toLowerCase() === address?.toLowerCase()
+  );
+
   return (
     <div
       onClick={() => router.push(`/issue/${mediation.id}`)}
@@ -50,8 +60,9 @@ export default function MediationCard({ mediation }: MediationCardProps) {
       <p className="text-white/80 mb-4">{mediation.description}</p>
       <div className="flex justify-between items-center text-sm text-white/60">
         <div>{format(new Date(mediation.createdAt), "MMM d, yyyy")}</div>
-        <div>
-          {mediation.mediator ? "Mediator assigned" : "Awaiting mediator"}
+        <div className="flex items-center gap-2">
+          {isCreator && <ShieldCheck className="w-7 h-7" />}
+          {isParty && <UsersRound className="w-7 h-7" />}
         </div>
       </div>
     </div>

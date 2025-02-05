@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useAccount } from "wagmi";
+import { useAccount, useSignMessage } from "wagmi";
 import {
   Wallet,
   ConnectWallet,
@@ -13,7 +13,8 @@ import { Address, Identity } from "@coinbase/onchainkit/identity";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const { isConnected } = useAccount();
+  const { isConnected, address, chainId } = useAccount();
+  const { signMessage } = useSignMessage();
 
   useEffect(() => {
     const handleScroll = () => {

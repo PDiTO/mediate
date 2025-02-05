@@ -11,8 +11,10 @@ import {
   XCircle,
   Plus,
   CircleDollarSign,
+  Bot,
 } from "lucide-react";
 import { format } from "date-fns";
+import { MODEL_NAMES, MODEL_DESCRIPTIONS } from "../../../types/models";
 
 export default function IssueDetails({
   params,
@@ -111,6 +113,26 @@ export default function IssueDetails({
                 {mediation.description}
               </p>
             </div>
+
+            {/* Mediator Model */}
+            {mediation.mediatorModel && (
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Bot className="w-5 h-5 text-white" />
+                  <h2 className="text-xl font-medium text-white">
+                    AI Mediator Model
+                  </h2>
+                </div>
+                <div className="space-y-2">
+                  <div className="text-white/80 font-medium">
+                    {MODEL_NAMES[mediation.mediatorModel]}
+                  </div>
+                  <p className="text-white/60 text-sm">
+                    {MODEL_DESCRIPTIONS[mediation.mediatorModel]}
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Parties */}
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">

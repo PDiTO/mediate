@@ -4,8 +4,6 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const walletAddress = searchParams.get("wallet");
-    const signature = request.headers.get("x-signature");
-    const timestamp = request.headers.get("x-timestamp");
 
     if (!walletAddress) {
       return NextResponse.json(
