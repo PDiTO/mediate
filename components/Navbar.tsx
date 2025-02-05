@@ -85,6 +85,12 @@ export default function Navbar() {
                 >
                   Create New
                 </Link>
+                <Link
+                  href="/test"
+                  className="text-white/90 hover:text-white transition-colors"
+                >
+                  Test
+                </Link>
               </>
             ) : (
               <>

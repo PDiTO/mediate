@@ -9,6 +9,7 @@ import {
   cdpWalletActionProvider,
   pythActionProvider,
 } from "@coinbase/agentkit";
+import { ReasoningTool } from "@/tools/reason";
 
 import { getLangChainTools } from "@coinbase/agentkit-langchain";
 import { HumanMessage } from "@langchain/core/messages";
@@ -30,6 +31,7 @@ function validateEnvironment(): boolean {
     "CDP_API_KEY_NAME",
     "CDP_API_KEY_PRIVATE_KEY",
     "SERPER_API_KEY",
+    "VENICE_API_KEY",
   ];
 
   const missingVars = requiredVars.filter((varName) => !process.env[varName]);
@@ -70,31 +72,13 @@ async function initializeAgent() {
     // Initialize AgentKit
     const agentkit = await AgentKit.from({
       walletProvider,
-      actionProviders: [
-        wethActionProvider(),
-        pythActionProvider(),
-        walletActionProvider(),
-        erc20ActionProvider(),
-        cdpApiActionProvider({
-          apiKeyName: process.env.CDP_API_KEY_NAME!,
-          apiKeyPrivateKey: process.env.CDP_API_KEY_PRIVATE_KEY!.replace(
-            /\\n/g,
-            "\n"
-          ),
-        }),
-        cdpWalletActionProvider({
-          apiKeyName: process.env.CDP_API_KEY_NAME!,
-          apiKeyPrivateKey: process.env.CDP_API_KEY_PRIVATE_KEY!.replace(
-            /\\n/g,
-            "\n"
-          ),
-        }),
-      ],
+      actionProviders: [walletActionProvider(), erc20ActionProvider()],
     });
 
     const tools = [
       ...(await getLangChainTools(agentkit)),
       new Serper(process.env.SERPER_API_KEY!),
+      new ReasoningTool(),
     ];
 
     // Store buffered conversation history in memory
@@ -109,20 +93,49 @@ async function initializeAgent() {
       tools,
       checkpointSaver: memory,
       messageModifier: `
-        You are a helpful agent that can interact onchain using the Coinbase Developer Platform AgentKit.
-        You are empowered to interact onchain using your tools. If you ever need funds, you can request
-        them from the faucet if you are on network ID 'base-sepolia'. If not, you can provide your wallet
-        details and request funds from the user. Before executing your first action, get the wallet details
-        to see what network you're on. If there is a 5XX (internal) HTTP error code, ask the user to try
-        again later. If someone asks you to do something you can't do with your currently available tools,
-        you must say so, and encourage them to implement it themselves using the CDP SDK + Agentkit,
-        recommend they go to docs.cdp.coinbase.com for more information. Be concise and helpful with your
-        responses. Refrain from restating your tools' descriptions unless it is explicitly requested.
-        
-        You are specifically focused on helping mediate disputes and agreements between parties. Your role
-        is to help understand the situation, propose fair solutions, and if needed, help implement those
-        solutions using smart contracts and on-chain actions.
-      `,
+You are an expert onchain mediator empowered with a suite of specialized tools. Your job is to help resolve issues between parties fairly and efficiently. Follow these steps for every request:
+
+1. Research Phase: First, analyze the issue by gathering all relevant supplementary information using your research tools. If you feel that research is not needed, you may provide to the next step.
+
+2. Reasoning Phase: Once you have the complete information, use the reasoning-tool to analyze the findings.
+   When calling the reasoning tool, you MUST provide input in the following JSON format:
+   {
+    "research": "Any research findings from the research phase",
+     "description": "A clear description of the dispute",
+     "totalFunds": "The total amount of funds available to distribute",
+     "parties": [
+       {
+         "address": "wallet address of party 1",
+         "evidence": "evidence or arguments from party 1",
+         "minSplit": optional minimum percentage split required by party 1
+       },
+       {
+         "address": "wallet address of party 2",
+         "evidence": "evidence or arguments from party 2",
+         "minSplit": optional minimum percentage split required by party 2
+       },
+       ...
+     ]
+   }
+   The tool will return an outcome which you must obey. Do not deviate from this outcome.
+
+3. Settlement Phase: With the outcome determined, pass this result to your settlement tools to transfer the correct amount of funds to the corresponding party addresses.
+
+Your overall goal is to coordinate these steps seamlessly. You must always obey the outcome of the reasoning tool. You must always distribute all funds. You never need to check any balances. Assume you have the funds available. Always respond with JSON, where transactions fail because of insufficient funds, you may set the transaction hash field to null.
+
+Your final response should be a JSON object in the following format:
+{
+  "status": "Either 'success' or 'failure'",
+  "justification": "The reasoning behind the outcome split. This should be a short explanation of the outcomes, not the status.",
+  "outcomes": [
+  {
+    "address": "wallet address of party 1",
+    "amount": "amount of funds to transferred",
+    "transactionHash": "transaction hash of the transfer"
+  },
+  ...]
+}
+`,
     });
 
     return { agent, agentConfig };

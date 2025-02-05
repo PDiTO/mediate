@@ -2,7 +2,7 @@
 
 import { useAccount } from "wagmi";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Navbar from "../../components/Navbar";
 import MediationCard from "../../components/MediationCard";
 import LoadingSpinner from "../../components/LoadingSpinner";
@@ -11,6 +11,7 @@ import { Mediation } from "../../types/mediation";
 export default function Dashboard() {
   const { isConnected, address } = useAccount();
   const router = useRouter();
+  const pathname = usePathname();
   const [mediations, setMediations] = useState<Mediation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -55,10 +56,10 @@ export default function Dashboard() {
 
   // Redirect to home if not connected
   useEffect(() => {
-    if (!isConnected) {
+    if (!isConnected && pathname !== "/test") {
       router.push("/");
     }
-  }, [isConnected, router]);
+  }, [isConnected, router, pathname]);
 
   // Don't render content while redirecting, but keep navbar
   if (!isConnected) {
