@@ -146,7 +146,7 @@ export default function IssueDetails({
   // Don't render content while redirecting, loading, or if mediation not found
   if (!isConnected || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-400 via-teal-300 to-emerald-500 animate-gradient-hero">
+      <div className="min-h-screen bg-gradient-to-br from-blue-500 via-teal-500 to-emerald-500 animate-gradient-hero">
         <Navbar />
         <div className="max-w-7xl mx-auto px-8 pt-32 pb-16">
           <LoadingSpinner />
@@ -157,7 +157,7 @@ export default function IssueDetails({
 
   if (!mediation) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-400 via-teal-300 to-emerald-500 animate-gradient-hero">
+      <div className="min-h-screen bg-gradient-to-br from-blue-500 via-teal-500 to-emerald-500 animate-gradient-hero">
         <Navbar />
         <div className="max-w-7xl mx-auto px-8 pt-32 pb-16">
           <div className="text-white text-xl">Mediation not found</div>
@@ -169,7 +169,7 @@ export default function IssueDetails({
   const statusConfig = {
     open: {
       icon: CircleDot,
-      color: "text-blue-400",
+      color: "text-blue-500",
       label: "Open",
     },
     resolved: {
@@ -179,17 +179,17 @@ export default function IssueDetails({
     },
     unresolved: {
       icon: XCircle,
-      color: "text-red-400",
+      color: "text-red-500",
       label: "Unresolved",
     },
     funded: {
       icon: CircleDollarSign,
-      color: "text-yellow-400",
+      color: "text-yellow-500",
       label: "Funded",
     },
     pending: {
       icon: Hourglass,
-      color: "text-gray-400",
+      color: "text-gray-500",
       label: "Pending",
     },
   };
@@ -271,7 +271,7 @@ export default function IssueDetails({
   };
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-blue-400 via-teal-300 to-emerald-500 animate-gradient-hero">
+    <div className="relative min-h-screen bg-gradient-to-br from-blue-500 via-teal-500 to-emerald-500 animate-gradient-hero">
       <Navbar />
       <div className="max-w-7xl mx-auto px-8 pt-32 pb-16">
         <div className="flex flex-col items-center">
@@ -317,7 +317,7 @@ export default function IssueDetails({
                       value: parseEther(mediation.amount.toString()),
                     });
                   }}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-500/40 hover:bg-blue-500/50 text-white rounded-lg backdrop-blur-sm transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-blue-500/20"
+                  className="flex items-center gap-2 px-4 py-2 bg-indigo-500/70 hover:bg-indigo-500/90 text-white rounded-lg backdrop-blur-sm transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-indigo-500/20"
                 >
                   {isPending || isConfirming ? (
                     <>

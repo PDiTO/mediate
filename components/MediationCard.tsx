@@ -23,7 +23,7 @@ export default function MediationCard({ mediation }: MediationCardProps) {
   const statusConfig = {
     open: {
       icon: CircleDot,
-      color: "text-blue-400",
+      color: "text-blue-500",
     },
     resolved: {
       icon: CheckCircle2,
@@ -31,15 +31,15 @@ export default function MediationCard({ mediation }: MediationCardProps) {
     },
     unresolved: {
       icon: XCircle,
-      color: "text-red-400",
+      color: "text-red-500",
     },
     funded: {
       icon: CircleDollarSign,
-      color: "text-yellow-400",
+      color: "text-yellow-500",
     },
     pending: {
       icon: Hourglass,
-      color: "text-gray-400",
+      color: "text-gray-500",
     },
   };
 

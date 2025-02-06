@@ -96,14 +96,14 @@ export default function CreateIssue() {
   // Don't render content while redirecting, but keep navbar
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-400 via-teal-300 to-emerald-500 animate-gradient-hero">
+      <div className="min-h-screen bg-gradient-to-br from-blue-500 via-teal-500 to-emerald-500 animate-gradient-hero">
         <Navbar />
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-blue-400 via-teal-300 to-emerald-500 animate-gradient-hero">
+    <div className="relative min-h-screen bg-gradient-to-br from-blue-500 via-teal-500 to-emerald-500 animate-gradient-hero">
       <Navbar />
       <div className="max-w-7xl mx-auto px-8 pt-32 pb-16">
         <div className="flex flex-col items-center">
