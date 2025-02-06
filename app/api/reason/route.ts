@@ -14,7 +14,7 @@ import { HumanMessage } from "@langchain/core/messages";
 import { MemorySaver } from "@langchain/langgraph";
 import { Serper } from "@langchain/community/tools/serper";
 
-import { ReasoningTool } from "@/lib/tools/reason";
+import { ReasonNewTool } from "@/lib/tools/reason_new";
 
 let agent: any = null;
 let agentConfig: any = null;
@@ -69,7 +69,7 @@ async function initializeAgent() {
     const tools = [
       ...(await getLangChainTools(agentkit)),
       new Serper(process.env.SERPER_API_KEY!),
-      new ReasoningTool(),
+      new ReasonNewTool(),
     ];
 
     // Store buffered conversation history in memory

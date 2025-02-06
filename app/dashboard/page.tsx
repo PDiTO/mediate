@@ -21,11 +21,26 @@ export default function Dashboard() {
       try {
         if (!address) return;
 
-        const response = await fetch(`/api/mediations?wallet=${address}`);
+        const response = await fetch(`/api/mediation/read`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            schema: "mediationSchema",
+            filter: {
+              $or: [
+                { creator: address },
+                { "parties.address": address },
+                { mediator: address },
+              ],
+            },
+          }),
+        });
         const data = await response.json();
 
-        if (response.ok && data.mediations) {
-          setMediations(data.mediations);
+        if (response.ok && data.success) {
+          setMediations(data.records);
         } else {
           console.error("Failed to fetch mediations:", data.error);
         }
@@ -101,7 +116,7 @@ export default function Dashboard() {
                 </h2>
                 <div className="grid gap-6 md:grid-cols-2">
                   {openMediations.map((mediation) => (
-                    <MediationCard key={mediation.id} mediation={mediation} />
+                    <MediationCard key={mediation._id} mediation={mediation} />
                   ))}
                 </div>
               </section>
@@ -115,7 +130,7 @@ export default function Dashboard() {
                 </h2>
                 <div className="grid gap-6 md:grid-cols-2">
                   {closedMediations.map((mediation) => (
-                    <MediationCard key={mediation.id} mediation={mediation} />
+                    <MediationCard key={mediation._id} mediation={mediation} />
                   ))}
                 </div>
               </section>

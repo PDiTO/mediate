@@ -7,6 +7,7 @@ import {
   CircleDollarSign,
   ShieldCheck,
   UsersRound,
+  Hourglass,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
@@ -36,6 +37,10 @@ export default function MediationCard({ mediation }: MediationCardProps) {
       icon: CircleDollarSign,
       color: "text-yellow-400",
     },
+    pending: {
+      icon: Hourglass,
+      color: "text-gray-400",
+    },
   };
 
   const StatusIcon = statusConfig[mediation.status].icon;
@@ -43,12 +48,12 @@ export default function MediationCard({ mediation }: MediationCardProps) {
   // Determine user's role
   const isCreator = address?.toLowerCase() === mediation.creator.toLowerCase();
   const isParty = mediation.parties.some(
-    (party) => party.toLowerCase() === address?.toLowerCase()
+    (party) => party.address.toLowerCase() === address?.toLowerCase()
   );
 
   return (
     <div
-      onClick={() => router.push(`/issue/${mediation.id}`)}
+      onClick={() => router.push(`/issue/${mediation._id}`)}
       className="bg-white/20 backdrop-blur-sm rounded-lg p-6 hover:bg-white/30 transition-all cursor-pointer"
     >
       <div className="flex justify-between items-start mb-4">

@@ -1,0 +1,116 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Mediation Schema",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "_id": {
+        "type": "string",
+        "format": "uuid",
+        "coerce": true
+      },
+      "title": {
+        "type": "string",
+        "description": "Title of the mediation"
+      },
+      "description": {
+        "type": "string",
+        "description": "Detailed description of the mediation"
+      },
+      "amount": {
+        "type": "number",
+        "description": "Amount of the mediation"
+      },
+      "createdAt": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Creation timestamp of the mediation"
+      },
+      "creator": {
+        "type": "string",
+        "description": "Address of the creator of the mediation"
+      },
+      "parties": {
+        "type": "array",
+        "description": "List of parties involved in the mediation",
+        "items": {
+          "type": "object",
+          "properties": {
+            "address": {
+              "type": "string",
+              "description": "Ethereum address of the party"
+            },
+            "details": {
+              "type": "object",
+              "properties": {
+                "$share": {
+                  "type": "string"
+                }
+              },
+              "required": ["$share"]
+            },
+            "share": {
+              "type": "number",
+              "description": "Share of the funds to be transferred to the party"
+            },
+            "txHash": {
+              "type": "string",
+              "description": "Transaction hash of the transfer to the party"
+            }
+          },
+          "required": ["address", "details"]
+        },
+        "minItems": 2
+      },
+      "model": {
+        "type": "string",
+        "enum": [
+          "deepseek-r1-671b",
+          "deepseek-r1-671b-dispute",
+          "gpt-4o-dispute"
+        ],
+        "description": "The AI model ID used for mediation"
+      },
+      "status": {
+        "type": "string",
+        "enum": ["open", "funded", "pending", "resolved", "unresolved"],
+        "description": "Current status of the mediation"
+      },
+      "mediator": {
+        "type": "string",
+        "description": "Address of the mediator"
+      },
+      "mediatorCDPData": {
+        "type": "object",
+        "properties": {
+          "$share": {
+            "type": "string"
+          }
+        },
+        "required": ["$share"]
+      },
+      "resolution": {
+        "type": "string",
+        "description": "Resolution of the mediation"
+      },
+      "resolutionDate": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Date and time of the resolution"
+      }
+    },
+    "required": [
+      "_id",
+      "title",
+      "description",
+      "createdAt",
+      "creator",
+      "parties",
+      "model",
+      "status",
+      "mediator",
+      "mediatorCDPData"
+    ]
+  }
+}

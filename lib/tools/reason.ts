@@ -16,9 +16,9 @@ const openai = new OpenAI({
 });
 
 export class ReasoningTool extends Tool {
-  name = "reasoning-tool";
+  name = "reasoning tool";
   description =
-    "A tool for determining fair outcomes between parties in a dispute based on evidence and requirements";
+    "A tool for determining fair outcomes between parties in a dispute based on evidence and requirements through a process of reasoning";
 
   constructor() {
     super();
@@ -29,10 +29,10 @@ export class ReasoningTool extends Tool {
 
     try {
       const inputData = JSON.parse(input);
-      const { description, parties } = inputData;
+      const { research, description, parties } = inputData;
 
       // Build the user prompt by combining description and evidence
-      let userPrompt = description + "\n\n";
+      let userPrompt = description + "\n\n" + research + "\n\n";
       parties.forEach((party: PartyEvidence, index: number) => {
         userPrompt += `Party ${index + 1} (${party.address}) Evidence: ${
           party.evidence

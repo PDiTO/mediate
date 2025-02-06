@@ -4,22 +4,79 @@ import { useAccount } from "wagmi";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "../../components/Navbar";
-import {
-  MODEL_IDS,
-  MODEL_NAMES,
-  MODEL_DESCRIPTIONS,
-  ModelId,
-} from "../../lib/models/models";
+import { MODEL_IDS, MODELS, ModelId } from "../../lib/models/models";
 import { Bot, Plus, X } from "lucide-react";
 
 export default function CreateIssue() {
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    amount: "",
+  });
   const [selectedModel, setSelectedModel] = useState<ModelId>(
     MODEL_IDS.DEEPSEEK_R1_671B_DISPUTE
   );
-  const [parties, setParties] = useState<string[]>([""]);
+  const [parties, setParties] = useState<string[]>(["", ""]);
   const [newParty, setNewParty] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      if (!address) throw new Error("Wallet not connected");
+      if (!formData.title) throw new Error("Title is required");
+      if (!formData.description) throw new Error("Description is required");
+      if (!formData.amount || isNaN(Number(formData.amount)))
+        throw new Error("Valid amount is required");
+      if (parties.some((p) => !p.trim()))
+        throw new Error("All party addresses must be filled");
+
+      const mediationData = {
+        title: formData.title,
+        description: formData.description,
+        amount: Number(formData.amount),
+        createdAt: new Date().toISOString(),
+        creator: address,
+        parties: parties.map((p) => ({
+          address: p,
+          details: {
+            $allot: "",
+          },
+        })),
+        model: selectedModel,
+        status: "open" as const,
+      };
+
+      const response = await fetch("/api/mediation/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          schema: "mediationSchema",
+          data: mediationData,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to create mediation");
+      }
+
+      router.push("/dashboard"); // Redirect to dashboard or appropriate page
+    } catch (err: any) {
+      setError(err.message || "An error occurred");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const addParty = () => {
     if (newParty.trim()) {
@@ -29,7 +86,9 @@ export default function CreateIssue() {
   };
 
   const removeParty = (index: number) => {
-    setParties(parties.filter((_, i) => i !== index));
+    if (parties.length > 2) {
+      setParties(parties.filter((_, i) => i !== index));
+    }
   };
 
   // Redirect to home if not connected
@@ -55,8 +114,14 @@ export default function CreateIssue() {
         <div className="flex flex-col items-center">
           <h1 className="text-6xl font-serif text-white mb-12">New Issue</h1>
 
+          {error && (
+            <div className="w-full max-w-2xl mb-8 p-4 bg-red-500/20 border border-red-500/40 rounded-lg text-white">
+              {error}
+            </div>
+          )}
+
           <div className="w-full max-w-2xl">
-            <form className="space-y-8">
+            <form onSubmit={handleSubmit} className="space-y-8">
               <div>
                 <label
                   htmlFor="title"
@@ -67,8 +132,13 @@ export default function CreateIssue() {
                 <input
                   type="text"
                   id="title"
+                  value={formData.title}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, title: e.target.value }))
+                  }
                   className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/40 text-lg"
                   placeholder="What's the issue about?"
+                  required
                 />
               </div>
 
@@ -82,8 +152,37 @@ export default function CreateIssue() {
                 <textarea
                   id="description"
                   rows={6}
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
                   className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/40 text-lg"
-                  placeholder="Provide details about the dispute, including any relevant transaction hashes, dates, or agreements..."
+                  placeholder="Provide details about the issue, including evaluation criteria, relevant dates or agreements, preferences..."
+                  required
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="amount"
+                  className="block text-white text-lg font-medium mb-3"
+                >
+                  Amount (ETH)
+                </label>
+                <input
+                  type="number"
+                  id="amount"
+                  step="0.000000000000000001"
+                  value={formData.amount}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, amount: e.target.value }))
+                  }
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/40 text-lg"
+                  placeholder="0.0"
+                  required
                 />
               </div>
 
@@ -110,7 +209,7 @@ export default function CreateIssue() {
                         placeholder="0x..."
                         className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/40 text-lg font-mono"
                       />
-                      {parties.length > 1 && (
+                      {parties.length > 2 && (
                         <button
                           type="button"
                           onClick={() => removeParty(index)}
@@ -161,10 +260,10 @@ export default function CreateIssue() {
                       />
                       <div className="flex-1">
                         <div className="text-white font-medium mb-1">
-                          {MODEL_NAMES[id]}
+                          {MODELS[id].name}
                         </div>
                         <div className="text-white/60 text-sm">
-                          {MODEL_DESCRIPTIONS[id]}
+                          {MODELS[id].description}
                         </div>
                       </div>
                       <div
@@ -181,9 +280,10 @@ export default function CreateIssue() {
 
               <button
                 type="submit"
-                className="w-full bg-white/20 hover:bg-white/30 text-white px-8 py-4 rounded-lg backdrop-blur-sm transition-all text-lg font-medium mt-8"
+                disabled={isSubmitting}
+                className="w-full bg-white/20 hover:bg-white/30 disabled:bg-white/10 disabled:cursor-not-allowed text-white px-8 py-4 rounded-lg backdrop-blur-sm transition-all text-lg font-medium mt-8"
               >
-                Create Issue
+                {isSubmitting ? "Creating..." : "Create Issue"}
               </button>
             </form>
           </div>

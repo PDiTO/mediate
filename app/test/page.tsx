@@ -4,12 +4,8 @@ import { useAccount } from "wagmi";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "../../components/Navbar";
-import {
-  MODEL_IDS,
-  MODEL_NAMES,
-  MODEL_DESCRIPTIONS,
-  ModelId,
-} from "../../lib/models/models";
+import { MODEL_IDS, MODELS, ModelId } from "../../lib/models/models";
+
 import { Bot, Plus, X, Loader2 } from "lucide-react";
 
 interface Party {
@@ -31,6 +27,75 @@ export default function TestPage() {
   const [amount, setAmount] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [response, setResponse] = useState<string[]>([]);
+  const [isPostingSchema, setIsPostingSchema] = useState(false);
+  const [isWritingNillion, setIsWritingNillion] = useState(false);
+  const [isReadingNillion, setIsReadingNillion] = useState(false);
+
+  // Handle Nillion schema posting
+  const handlePostSchema = async () => {
+    setIsPostingSchema(true);
+    try {
+      const res = await fetch("/api/schema/create", {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Schema posted successfully!");
+      } else {
+        alert("Failed to post schema: " + data.error);
+      }
+    } catch (error) {
+      console.error("Error posting schema:", error);
+      alert("Error posting schema. Check console for details.");
+    } finally {
+      setIsPostingSchema(false);
+    }
+  };
+
+  // Handle Nillion write
+  const handleWriteNillion = async () => {
+    setIsWritingNillion(true);
+    try {
+      const res = await fetch("/api/nillion/write", {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Data written to Nillion successfully!");
+      } else {
+        alert("Failed to write data: " + data.error);
+      }
+    } catch (error) {
+      console.error("Error writing to Nillion:", error);
+      alert("Error writing to Nillion. Check console for details.");
+    } finally {
+      setIsWritingNillion(false);
+    }
+  };
+
+  // Handle Nillion read
+  const handleReadNillion = async () => {
+    setIsReadingNillion(true);
+    try {
+      const res = await fetch("/api/nillion/read", {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (data.success) {
+        console.log("Read data:", data.records);
+        alert(
+          "Data read from Nillion successfully! Check console for details."
+        );
+      } else {
+        alert("Failed to read data: " + data.error);
+      }
+    } catch (error) {
+      console.error("Error reading from Nillion:", error);
+      alert("Error reading from Nillion. Check console for details.");
+    } finally {
+      setIsReadingNillion(false);
+    }
+  };
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,7 +118,7 @@ ${validParties
   Evidence: ${p.evidence}`
   )
   .join("\n")}
-Model: ${MODEL_NAMES[selectedModel]}
+Model: ${MODELS[selectedModel].name}
 
 Please analyze this mediation request and provide your assessment.
 `;
@@ -254,7 +319,7 @@ Please analyze this mediation request and provide your assessment.
                   </div>
                 </label>
                 <div className="grid gap-4">
-                  {Object.entries(MODEL_IDS).map(([key, id]) => (
+                  {Object.entries(MODELS).map(([id, model]) => (
                     <label
                       key={id}
                       className={`relative flex items-start p-4 cursor-pointer rounded-lg border ${
@@ -275,10 +340,10 @@ Please analyze this mediation request and provide your assessment.
                       />
                       <div className="flex-1">
                         <div className="text-white font-medium mb-1">
-                          {MODEL_NAMES[id]}
+                          {model.name}
                         </div>
                         <div className="text-white/60 text-sm">
-                          {MODEL_DESCRIPTIONS[id]}
+                          {model.description}
                         </div>
                       </div>
                       <div
@@ -290,6 +355,61 @@ Please analyze this mediation request and provide your assessment.
                       />
                     </label>
                   ))}
+                </div>
+              </div>
+
+              <div className="mt-12 border-t border-white/20 pt-8">
+                <h2 className="text-2xl font-serif text-white mb-6">
+                  Nillion Testing
+                </h2>
+                <div className="space-y-4">
+                  <button
+                    type="button"
+                    onClick={handlePostSchema}
+                    disabled={isPostingSchema}
+                    className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:cursor-not-allowed text-white rounded-lg backdrop-blur-sm transition-all"
+                  >
+                    {isPostingSchema ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Posting Schema...
+                      </>
+                    ) : (
+                      "Post Nillion Schema"
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleWriteNillion}
+                    disabled={isWritingNillion}
+                    className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:cursor-not-allowed text-white rounded-lg backdrop-blur-sm transition-all"
+                  >
+                    {isWritingNillion ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Writing Data...
+                      </>
+                    ) : (
+                      "Write Test Data"
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleReadNillion}
+                    disabled={isReadingNillion}
+                    className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:cursor-not-allowed text-white rounded-lg backdrop-blur-sm transition-all"
+                  >
+                    {isReadingNillion ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Reading Data...
+                      </>
+                    ) : (
+                      "Read Test Data"
+                    )}
+                  </button>
                 </div>
               </div>
 
