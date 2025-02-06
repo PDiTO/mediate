@@ -7,18 +7,11 @@ export interface Mediation {
   amount: number;
   createdAt: string;
   creator: string;
-  parties: MediationParty[];
+  parties: string[];
   model: ModelId;
   status: "open" | "funded" | "pending" | "resolved" | "unresolved";
   mediator?: string;
   mediatorCDPData?: string;
   resolution?: string;
   resolutionDate?: string;
-}
-
-export interface MediationParty {
-  address: string;
-  details?: string;
-  share?: number;
-  txHash?: string;
 }

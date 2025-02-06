@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "../../components/Navbar";
 import { MODEL_IDS, MODELS, ModelId } from "../../lib/models/models";
-
-import { Bot, Plus, X, Loader2 } from "lucide-react";
+import { Bot, Plus, X, Loader2, Trash2 } from "lucide-react";
+import { Mediation } from "../../types/mediation";
 
 interface Party {
   address: string;
@@ -28,14 +28,40 @@ export default function TestPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [response, setResponse] = useState<string[]>([]);
   const [isPostingSchema, setIsPostingSchema] = useState(false);
-  const [isWritingNillion, setIsWritingNillion] = useState(false);
-  const [isReadingNillion, setIsReadingNillion] = useState(false);
+  const [mediations, setMediations] = useState<Mediation[]>([]);
+
+  // Fetch mediations
+  useEffect(() => {
+    async function fetchMediations() {
+      try {
+        const response = await fetch("/api/nillion/read", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            schema: "mediationSchema",
+          }),
+        });
+        const data = await response.json();
+        if (data.success) {
+          setMediations(data.records);
+        } else {
+          console.error("Failed to fetch mediations:", data.error);
+        }
+      } catch (error) {
+        console.error("Error fetching mediations:", error);
+      }
+    }
+
+    fetchMediations();
+  }, []);
 
   // Handle Nillion schema posting
   const handlePostSchema = async () => {
     setIsPostingSchema(true);
     try {
-      const res = await fetch("/api/schema/create", {
+      const res = await fetch("/api/nillion/schema/create", {
         method: "POST",
       });
       const data = await res.json();
@@ -49,51 +75,6 @@ export default function TestPage() {
       alert("Error posting schema. Check console for details.");
     } finally {
       setIsPostingSchema(false);
-    }
-  };
-
-  // Handle Nillion write
-  const handleWriteNillion = async () => {
-    setIsWritingNillion(true);
-    try {
-      const res = await fetch("/api/nillion/write", {
-        method: "POST",
-      });
-      const data = await res.json();
-      if (data.success) {
-        alert("Data written to Nillion successfully!");
-      } else {
-        alert("Failed to write data: " + data.error);
-      }
-    } catch (error) {
-      console.error("Error writing to Nillion:", error);
-      alert("Error writing to Nillion. Check console for details.");
-    } finally {
-      setIsWritingNillion(false);
-    }
-  };
-
-  // Handle Nillion read
-  const handleReadNillion = async () => {
-    setIsReadingNillion(true);
-    try {
-      const res = await fetch("/api/nillion/read", {
-        method: "POST",
-      });
-      const data = await res.json();
-      if (data.success) {
-        console.log("Read data:", data.records);
-        alert(
-          "Data read from Nillion successfully! Check console for details."
-        );
-      } else {
-        alert("Failed to read data: " + data.error);
-      }
-    } catch (error) {
-      console.error("Error reading from Nillion:", error);
-      alert("Error reading from Nillion. Check console for details.");
-    } finally {
-      setIsReadingNillion(false);
     }
   };
 
@@ -378,38 +359,81 @@ Please analyze this mediation request and provide your assessment.
                       "Post Nillion Schema"
                     )}
                   </button>
+                </div>
+              </div>
 
-                  <button
-                    type="button"
-                    onClick={handleWriteNillion}
-                    disabled={isWritingNillion}
-                    className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:cursor-not-allowed text-white rounded-lg backdrop-blur-sm transition-all"
-                  >
-                    {isWritingNillion ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        Writing Data...
-                      </>
-                    ) : (
-                      "Write Test Data"
-                    )}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleReadNillion}
-                    disabled={isReadingNillion}
-                    className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:cursor-not-allowed text-white rounded-lg backdrop-blur-sm transition-all"
-                  >
-                    {isReadingNillion ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        Reading Data...
-                      </>
-                    ) : (
-                      "Read Test Data"
-                    )}
-                  </button>
+              <div className="mt-12 border-t border-white/20 pt-8">
+                <h2 className="text-2xl font-serif text-white mb-6">
+                  Mediation Records
+                </h2>
+                <div className="space-y-4">
+                  {response.length === 0 && !isSubmitting && (
+                    <div className="text-white/60 text-center py-8">
+                      No mediation records found
+                    </div>
+                  )}
+                  {mediations.map((mediation) => (
+                    <div
+                      key={mediation._id}
+                      className="bg-white/10 backdrop-blur-sm rounded-lg p-6 flex justify-between items-center"
+                    >
+                      <div>
+                        <h3 className="text-xl font-medium text-white mb-2">
+                          {mediation.title}
+                        </h3>
+                        <p className="text-white/60">
+                          Created:{" "}
+                          {new Date(mediation.createdAt).toLocaleDateString()}
+                        </p>
+                        <p className="text-white/60">
+                          Status: {mediation.status}
+                        </p>
+                      </div>
+                      <button
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          if (
+                            window.confirm(
+                              "Are you sure you want to delete this mediation?"
+                            )
+                          ) {
+                            try {
+                              const res = await fetch("/api/nillion/delete", {
+                                method: "POST",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({
+                                  schema: "mediationSchema",
+                                  id: mediation._id,
+                                }),
+                              });
+                              const data = await res.json();
+                              if (data.success) {
+                                setMediations(
+                                  mediations.filter(
+                                    (m) => m._id !== mediation._id
+                                  )
+                                );
+                              } else {
+                                alert(
+                                  "Failed to delete mediation: " + data.error
+                                );
+                              }
+                            } catch (error) {
+                              console.error("Error deleting mediation:", error);
+                              alert(
+                                "Error deleting mediation. Check console for details."
+                              );
+                            }
+                          }
+                        }}
+                        className="p-2 hover:bg-white/20 text-white/60 hover:text-white rounded-lg transition-all"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
 

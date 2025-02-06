@@ -48,7 +48,7 @@ export default function MediationCard({ mediation }: MediationCardProps) {
   // Determine user's role
   const isCreator = address?.toLowerCase() === mediation.creator.toLowerCase();
   const isParty = mediation.parties.some(
-    (party) => party.address.toLowerCase() === address?.toLowerCase()
+    (party) => party.toLowerCase() === address?.toLowerCase()
   );
 
   return (

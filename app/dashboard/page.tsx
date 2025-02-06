@@ -21,7 +21,7 @@ export default function Dashboard() {
       try {
         if (!address) return;
 
-        const response = await fetch(`/api/mediation/read`, {
+        const response = await fetch(`/api/nillion/read`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -29,11 +29,7 @@ export default function Dashboard() {
           body: JSON.stringify({
             schema: "mediationSchema",
             filter: {
-              $or: [
-                { creator: address },
-                { "parties.address": address },
-                { mediator: address },
-              ],
+              $or: [{ creator: address }, { parties: address }],
             },
           }),
         });

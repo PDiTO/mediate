@@ -49,14 +49,53 @@ export default function IssueDetails({
 
   const { data: hash, sendTransaction, isPending } = useSendTransaction();
 
-  const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({
-    hash: hash,
-  });
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash: hash,
+    });
+
+  // Update mediation status when transaction is confirmed
+  useEffect(() => {
+    const updateMediationStatus = async () => {
+      if (isConfirmed && mediation?._id) {
+        // Optimistically update the UI immediately
+        setMediation((prev) => (prev ? { ...prev, status: "funded" } : null));
+
+        // Update the database in the background
+        try {
+          const response = await fetch("/api/nillion/update", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              id: mediation._id,
+              status: "funded",
+            }),
+          });
+
+          const data = await response.json();
+          if (!data.success) {
+            // Only show error if the update failed
+            console.error("Failed to update mediation status");
+            // Optionally revert the optimistic update if the server update failed
+            setMediation((prev) => (prev ? { ...prev, status: "open" } : null));
+          }
+        } catch (error) {
+          console.error("Error updating mediation status:", error);
+          // Revert the optimistic update on error
+          setMediation((prev) => (prev ? { ...prev, status: "open" } : null));
+        }
+      }
+    };
+
+    updateMediationStatus();
+  }, [isConfirmed, mediation?._id]);
 
   useEffect(() => {
     const fetchMediation = async () => {
       try {
-        const response = await fetch("/api/mediation/read", {
+        const response = await fetch("/api/nillion/read", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -161,7 +200,7 @@ export default function IssueDetails({
     if (!mediation?._id) return;
     setIsDeleting(true);
     try {
-      const response = await fetch("/api/mediation/delete", {
+      const response = await fetch("/api/nillion/delete", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -203,7 +242,7 @@ export default function IssueDetails({
     }
 
     try {
-      const response = await fetch("/api/mediation/update", {
+      const response = await fetch("/api/nillion/update", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -265,6 +304,91 @@ export default function IssueDetails({
             </div>
           </div>
 
+          {/* Action Buttons */}
+          {mediation.status === "open" && address === mediation.creator && (
+            <div className="w-full max-w-3xl flex justify-between items-center mb-6">
+              {/* Fund Button */}
+              {!isEditMode && (
+                <button
+                  disabled={isPending || isConfirming}
+                  onClick={() => {
+                    sendTransaction({
+                      to: mediation.mediator as `0x${string}`,
+                      value: parseEther(mediation.amount.toString()),
+                    });
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-500/40 hover:bg-blue-500/50 text-white rounded-lg backdrop-blur-sm transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-blue-500/20"
+                >
+                  {isPending || isConfirming ? (
+                    <>
+                      <LoadingSpinner size="sm" />
+                      {isPending ? "Processing..." : "Confirming..."}
+                    </>
+                  ) : (
+                    <>
+                      <CircleDollarSign className="w-4 h-4" />
+                      <span>Fund ({mediation.amount} ETH)</span>
+                    </>
+                  )}
+                </button>
+              )}
+
+              {/* Edit/Delete Buttons */}
+              {!isPending && !isConfirming && !isEditMode && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setIsEditMode(true)}
+                    className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-sm transition-all"
+                    title="Edit"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-sm transition-all disabled:opacity-50"
+                    title="Delete"
+                  >
+                    {isDeleting ? (
+                      <LoadingSpinner size="sm" />
+                    ) : (
+                      <Trash2 className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+              )}
+
+              {/* Save/Cancel Buttons for Edit Mode */}
+              {isEditMode && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-sm transition-all disabled:opacity-50"
+                    title="Save"
+                  >
+                    {isSaving ? (
+                      <LoadingSpinner size="sm" />
+                    ) : (
+                      <Save className="w-4 h-4" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsEditMode(false);
+                      setEditedTitle(mediation.title);
+                      setEditedDescription(mediation.description);
+                    }}
+                    className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-sm transition-all"
+                    title="Cancel"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Details */}
           <div className="w-full max-w-3xl space-y-8">
             {/* Description */}
@@ -319,7 +443,7 @@ export default function IssueDetails({
                   (party, index) =>
                     !removedPartyIndexes.includes(index) && (
                       <div
-                        key={party.address}
+                        key={party}
                         className="flex items-center justify-between text-white/80"
                       >
                         <span className="font-medium">
@@ -330,7 +454,7 @@ export default function IssueDetails({
                         </span>
                         <div className="flex items-center gap-2">
                           <code className="bg-white/10 px-3 py-1 rounded-lg">
-                            {party.address}
+                            {party}
                           </code>
                           {isEditMode && (
                             <button
@@ -441,7 +565,7 @@ export default function IssueDetails({
                     {mediation.amount} ETH
                   </span>
                 </div>
-                {mediation.parties.map(
+                {/* {mediation.parties.map(
                   (party, index) =>
                     party.share && (
                       <div
@@ -464,7 +588,7 @@ export default function IssueDetails({
                         </div>
                       </div>
                     )
-                )}
+                )} */}
               </div>
             </div>
 
@@ -489,76 +613,6 @@ export default function IssueDetails({
                     {mediation.resolution}
                   </p>
                 )}
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            {mediation.status === "open" && address === mediation.creator && (
-              <div className="space-y-6 pt-4">
-                {/* Primary Fund Button */}
-                <div className="flex justify-center">
-                  {!isEditMode && (
-                    <button
-                      disabled={isPending}
-                      onClick={() => {
-                        sendTransaction({
-                          to: mediation.mediator as `0x${string}`,
-                          value: parseEther(mediation.amount.toString()),
-                        });
-                      }}
-                      className="max-w-md flex items-center justify-center gap-2 px-8 py-4 bg-blue-500/80 hover:bg-blue-500/90 text-white rounded-lg backdrop-blur-sm transition-all text-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow hover:shadow-blue-500/20"
-                    >
-                      <CircleDollarSign className="w-5 h-5" />
-                      Fund Mediation ({mediation.amount} ETH)
-                    </button>
-                  )}
-                </div>
-
-                {/* Secondary Actions */}
-                <div className="flex justify-center gap-3">
-                  {isEditMode ? (
-                    <>
-                      <button
-                        onClick={handleSave}
-                        disabled={isSaving}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/80 hover:bg-green-500/90 text-white rounded-lg backdrop-blur-sm transition-all text-sm font-medium shadow hover:shadow-green-500/20 disabled:opacity-50"
-                      >
-                        <Save className="w-4 h-4" />
-                        {isSaving ? "Saving..." : "Save"}
-                      </button>
-                      <button
-                        onClick={() => {
-                          setIsEditMode(false);
-                          setEditedTitle(mediation.title);
-                          setEditedDescription(mediation.description);
-                        }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-500/80 hover:bg-gray-500/90 text-white rounded-lg backdrop-blur-sm transition-all text-sm font-medium shadow hover:shadow-gray-500/20"
-                      >
-                        <X className="w-4 h-4" />
-                        Cancel
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        disabled={isPending || isDeleting}
-                        onClick={() => setIsEditMode(true)}
-                        className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg backdrop-blur-sm transition-all text-sm font-medium shadow hover:shadow-white/20 w-24"
-                      >
-                        <Pencil className="w-4 h-4" />
-                        Edit
-                      </button>
-                      <button
-                        onClick={handleDelete}
-                        disabled={isDeleting || isPending}
-                        className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-red-500/80 hover:bg-red-500/90 text-white rounded-lg backdrop-blur-sm transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow hover:shadow-red-500/20 w-24"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        {isDeleting ? "Deleting..." : "Delete"}
-                      </button>
-                    </>
-                  )}
-                </div>
               </div>
             )}
           </div>

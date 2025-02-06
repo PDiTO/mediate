@@ -35,31 +35,8 @@
         "type": "array",
         "description": "List of parties involved in the mediation",
         "items": {
-          "type": "object",
-          "properties": {
-            "address": {
-              "type": "string",
-              "description": "Ethereum address of the party"
-            },
-            "details": {
-              "type": "object",
-              "properties": {
-                "$share": {
-                  "type": "string"
-                }
-              },
-              "required": ["$share"]
-            },
-            "share": {
-              "type": "number",
-              "description": "Share of the funds to be transferred to the party"
-            },
-            "txHash": {
-              "type": "string",
-              "description": "Transaction hash of the transfer to the party"
-            }
-          },
-          "required": ["address", "details"]
+          "type": "string",
+          "description": "Ethereum address of the party"
         },
         "minItems": 2
       },

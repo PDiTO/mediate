@@ -1,9 +1,25 @@
 import { LoaderCircle } from "lucide-react";
 
-export default function LoadingSpinner() {
+interface LoadingSpinnerProps {
+  size?: "sm" | "md" | "lg";
+  className?: string;
+}
+
+export default function LoadingSpinner({
+  size = "lg",
+  className = "",
+}: LoadingSpinnerProps) {
+  const sizeClasses = {
+    sm: "w-4 h-4",
+    md: "w-6 h-6",
+    lg: "w-8 h-8",
+  };
+
   return (
-    <div className="flex justify-center items-center w-full py-12">
-      <LoaderCircle className="w-8 h-8 text-white animate-spin" />
+    <div className={`flex justify-center items-center ${className}`}>
+      <LoaderCircle
+        className={`${sizeClasses[size]} text-white animate-spin`}
+      />
     </div>
   );
 }

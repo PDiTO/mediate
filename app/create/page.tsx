@@ -43,17 +43,12 @@ export default function CreateIssue() {
         amount: Number(formData.amount),
         createdAt: new Date().toISOString(),
         creator: address,
-        parties: parties.map((p) => ({
-          address: p,
-          details: {
-            $allot: "",
-          },
-        })),
+        parties: parties,
         model: selectedModel,
         status: "open" as const,
       };
 
-      const response = await fetch("/api/mediation/create", {
+      const response = await fetch("/api/nillion/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

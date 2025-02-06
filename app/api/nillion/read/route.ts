@@ -20,17 +20,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, records });
     }
 
-    // For frontend requests, filter out sensitive data
-    const filteredRecords = records.map((record: Mediation) => ({
-      ...record,
-      mediatorCDPData: undefined,
-      parties: record.parties.map((party) => ({
-        ...party,
-        details: undefined,
-      })),
-    }));
-
-    return NextResponse.json({ success: true, records: filteredRecords });
+    return NextResponse.json({ success: true, records: records });
   } catch (error: any) {
     console.error("Error reading from Nillion:", error);
     return NextResponse.json(
