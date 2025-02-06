@@ -7,48 +7,72 @@ import Navbar from "../../components/Navbar";
 import MediationCard from "../../components/MediationCard";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { Mediation } from "../../types/mediation";
+import { Party } from "../../types/party";
 
 export default function Dashboard() {
   const { isConnected, address } = useAccount();
   const router = useRouter();
   const pathname = usePathname();
   const [mediations, setMediations] = useState<Mediation[]>([]);
+  const [parties, setParties] = useState<Party[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch mediations
+  // Fetch mediations and parties
   useEffect(() => {
-    async function fetchMediations() {
+    async function fetchData() {
       try {
         if (!address) return;
 
-        const response = await fetch(`/api/nillion/read`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            schema: "mediationSchema",
-            filter: {
-              $or: [{ creator: address }, { parties: address }],
+        const [mediationsResponse, partiesResponse] = await Promise.all([
+          fetch(`/api/nillion/read`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
             },
+            body: JSON.stringify({
+              schema: "mediationSchema",
+              filter: {
+                $or: [{ creator: address }, { parties: address }],
+              },
+            }),
           }),
-        });
-        const data = await response.json();
+          fetch(`/api/nillion/read`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              schema: "partySchema",
+              filter: { address },
+            }),
+          }),
+        ]);
 
-        if (response.ok && data.success) {
-          setMediations(data.records);
+        const [mediationsData, partiesData] = await Promise.all([
+          mediationsResponse.json(),
+          partiesResponse.json(),
+        ]);
+
+        if (mediationsResponse.ok && mediationsData.success) {
+          setMediations(mediationsData.records);
         } else {
-          console.error("Failed to fetch mediations:", data.error);
+          console.error("Failed to fetch mediations:", mediationsData.error);
+        }
+
+        if (partiesResponse.ok && partiesData.success) {
+          setParties(partiesData.records);
+        } else {
+          console.error("Failed to fetch parties:", partiesData.error);
         }
       } catch (error) {
-        console.error("Failed to fetch mediations:", error);
+        console.error("Failed to fetch data:", error);
       } finally {
         setIsLoading(false);
       }
     }
 
     if (isConnected && address) {
-      fetchMediations();
+      fetchData();
     }
   }, [isConnected, address]);
 
@@ -112,7 +136,13 @@ export default function Dashboard() {
                 </h2>
                 <div className="grid gap-6 md:grid-cols-2">
                   {openMediations.map((mediation) => (
-                    <MediationCard key={mediation._id} mediation={mediation} />
+                    <MediationCard
+                      key={mediation._id}
+                      mediation={mediation}
+                      party={parties.find(
+                        (p) => p.mediationId === mediation._id
+                      )}
+                    />
                   ))}
                 </div>
               </section>
@@ -126,7 +156,13 @@ export default function Dashboard() {
                 </h2>
                 <div className="grid gap-6 md:grid-cols-2">
                   {closedMediations.map((mediation) => (
-                    <MediationCard key={mediation._id} mediation={mediation} />
+                    <MediationCard
+                      key={mediation._id}
+                      mediation={mediation}
+                      party={parties.find(
+                        (p) => p.mediationId === mediation._id
+                      )}
+                    />
                   ))}
                 </div>
               </section>

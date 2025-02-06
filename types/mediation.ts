@@ -15,3 +15,7 @@ export interface Mediation {
   resolution?: string;
   resolutionDate?: string;
 }
+
+export interface MediationWithParties extends Mediation {
+  partiesStatus: string[];
+}

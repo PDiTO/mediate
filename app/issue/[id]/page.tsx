@@ -22,9 +22,12 @@ import {
   Pencil,
   Save,
   X,
+  FileText,
+  FileQuestion,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Mediation } from "../../../types/mediation";
+import { Party } from "../../../types/party";
 import { getModel } from "../../../lib/models/models";
 import { parseEther } from "viem";
 
@@ -37,6 +40,7 @@ export default function IssueDetails({
   const router = useRouter();
   const resolvedParams = use(params);
   const [mediation, setMediation] = useState<Mediation | null>(null);
+  const [party, setParty] = useState<Party | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -93,39 +97,70 @@ export default function IssueDetails({
   }, [isConfirmed, mediation?._id]);
 
   useEffect(() => {
-    const fetchMediation = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch("/api/nillion/read", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            schema: "mediationSchema",
-            filter: {
-              _id: resolvedParams.id,
+        const [mediationResponse, partyResponse] = await Promise.all([
+          fetch("/api/nillion/read", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
             },
+            body: JSON.stringify({
+              schema: "mediationSchema",
+              filter: {
+                _id: resolvedParams.id,
+              },
+            }),
           }),
-        });
+          fetch("/api/nillion/read", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              schema: "partySchema",
+              filter: {
+                mediationId: resolvedParams.id,
+                address: address,
+              },
+            }),
+          }),
+        ]);
 
-        const data = await response.json();
-        if (data.success && data.records && data.records.length > 0) {
-          setMediation(data.records[0]);
+        const [mediationData, partyData] = await Promise.all([
+          mediationResponse.json(),
+          partyResponse.json(),
+        ]);
+
+        if (
+          mediationData.success &&
+          mediationData.records &&
+          mediationData.records.length > 0
+        ) {
+          setMediation(mediationData.records[0]);
         } else {
           console.error("Mediation not found");
           router.push("/dashboard");
         }
+
+        if (
+          partyData.success &&
+          partyData.records &&
+          partyData.records.length > 0
+        ) {
+          setParty(partyData.records[0]);
+        }
       } catch (error) {
-        console.error("Error fetching mediation:", error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    if (resolvedParams.id) {
-      fetchMediation();
+    if (resolvedParams.id && address) {
+      fetchData();
     }
-  }, [resolvedParams.id, router]);
+  }, [resolvedParams.id, router, address]);
 
   useEffect(() => {
     if (mediation) {
@@ -317,7 +352,7 @@ export default function IssueDetails({
                       value: parseEther(mediation.amount.toString()),
                     });
                   }}
-                  className="flex items-center gap-2 px-4 py-2 bg-indigo-500/70 hover:bg-indigo-500/90 text-white rounded-lg backdrop-blur-sm transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-indigo-500/20"
+                  className="flex items-center gap-2 px-6 py-2 bg-indigo-500/70 hover:bg-indigo-500/90 text-white rounded-lg backdrop-blur-sm transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-indigo-500/20"
                 >
                   {isPending || isConfirming ? (
                     <>
@@ -391,9 +426,9 @@ export default function IssueDetails({
 
           {/* Details */}
           <div className="w-full max-w-3xl space-y-8">
-            {/* Description */}
+            {/* Description and Financial Details */}
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
-              <h2 className="text-xl font-medium text-white mb-4">
+              <h2 className="text-xl font-serif text-white mb-4">
                 Description
               </h2>
               {isEditMode ? (
@@ -408,6 +443,23 @@ export default function IssueDetails({
                   {mediation.description}
                 </p>
               )}
+
+              <div className="mt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <DollarSign className="w-5 h-5 text-white" />
+                  <h2 className="text-xl font-serif text-white">
+                    Financial Details
+                  </h2>
+                </div>
+                <div className="text-white/80 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span>Total Amount</span>
+                    <span className="font-mono text-lg">
+                      {mediation.amount} ETH
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Mediator Model */}
@@ -415,7 +467,7 @@ export default function IssueDetails({
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <Bot className="w-5 h-5 text-white" />
-                  <h2 className="text-xl font-medium text-white">
+                  <h2 className="text-xl font-serif text-white">
                     AI Mediator Model
                   </h2>
                 </div>
@@ -434,7 +486,7 @@ export default function IssueDetails({
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
               <div className="flex items-center gap-2 mb-4">
                 <UsersRound className="w-5 h-5 text-white" />
-                <h2 className="text-xl font-medium text-white">Parties</h2>
+                <h2 className="text-xl font-serif text-white">Parties</h2>
               </div>
 
               <div className="space-y-4">
@@ -551,52 +603,10 @@ export default function IssueDetails({
               </div>
             </div>
 
-            {/* Amount Information */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <DollarSign className="w-5 h-5 text-white" />
-                <h2 className="text-xl font-medium text-white">
-                  Financial Details
-                </h2>
-              </div>
-              <div className="text-white/80 space-y-4">
-                <div className="flex items-center justify-between">
-                  <span>Total Amount</span>
-                  <span className="font-mono text-lg">
-                    {mediation.amount} ETH
-                  </span>
-                </div>
-                {/* {mediation.parties.map(
-                  (party, index) =>
-                    party.share && (
-                      <div
-                        key={`${party.address}-share`}
-                        className="flex items-center justify-between text-sm"
-                      >
-                        <span>Party {index + 1} Share</span>
-                        <div className="flex items-center gap-4">
-                          <span className="font-mono">{party.share}%</span>
-                          {party.txHash && (
-                            <a
-                              href={`https://etherscan.io/tx/${party.txHash}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-300 hover:text-blue-200 underline"
-                            >
-                              View Transaction
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    )
-                )} */}
-              </div>
-            </div>
-
             {/* Resolution Details */}
             {(mediation.resolution || mediation.resolutionDate) && (
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
-                <h2 className="text-xl font-medium text-white mb-4">
+                <h2 className="text-xl font-serif text-white mb-4">
                   Resolution
                 </h2>
                 {mediation.resolutionDate && (
@@ -613,6 +623,40 @@ export default function IssueDetails({
                   <p className="text-white/80 text-lg leading-relaxed whitespace-pre-wrap">
                     {mediation.resolution}
                   </p>
+                )}
+              </div>
+            )}
+
+            {/* Party Statement - Only show if user is a party */}
+            {mediation.parties.some(
+              (p) => p.toLowerCase() === address?.toLowerCase()
+            ) && (
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <UsersRound className="w-5 h-5 text-white" />
+                  <h2 className="text-xl font-serif text-white">
+                    Your Party Statement
+                  </h2>
+                </div>
+                {party ? (
+                  <div className="text-white/80">
+                    <p className="mb-2">Status: {party.status}</p>
+                    {party.statement && (
+                      <div className="bg-white/10 rounded-lg p-4">
+                        <p className="whitespace-pre-wrap">{party.statement}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-white/80">
+                    <p>You haven't submitted your statement yet.</p>
+                    <button
+                      onClick={() => router.push(`/party/${mediation._id}`)}
+                      className="mt-4 bg-white/20 hover:bg-white/30 text-white px-6 py-2 rounded-lg backdrop-blur-sm transition-all"
+                    >
+                      Submit Statement
+                    </button>
+                  </div>
                 )}
               </div>
             )}

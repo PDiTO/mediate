@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { readNillionRecordsWithSchema } from "../../../../lib/nillion/core/read";
-import { Mediation } from "../../../../types/mediation";
 
 export async function POST(request: Request) {
   try {
