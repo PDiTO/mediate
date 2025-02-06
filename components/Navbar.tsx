@@ -94,34 +94,34 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <a
+                <Link
                   href="/#how-it-works"
                   onClick={scrollToSection("how-it-works")}
                   className="text-white/90 hover:text-white transition-colors cursor-pointer"
                 >
                   How it Works
-                </a>
-                <a
+                </Link>
+                <Link
                   href="/#cases"
                   onClick={scrollToSection("cases")}
                   className="text-white/90 hover:text-white transition-colors cursor-pointer"
                 >
                   Use Cases
-                </a>
-                <a
+                </Link>
+                <Link
                   href="/#technology"
                   onClick={scrollToSection("technology")}
                   className="text-white/90 hover:text-white transition-colors cursor-pointer"
                 >
                   Technology
-                </a>
-                <a
+                </Link>
+                <Link
                   href="/#community"
                   onClick={scrollToSection("community")}
                   className="text-white/90 hover:text-white transition-colors cursor-pointer"
                 >
                   Community
-                </a>
+                </Link>
               </>
             )}
             <Wallet>

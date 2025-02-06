@@ -542,7 +542,8 @@ export default function IssueDetails({
                     </div>
                     {stagedParties.length > 0 && (
                       <p className="text-white/60 text-xs mt-2">
-                        New parties will be saved when you click "Save Changes"
+                        New parties will be saved when you click &ldquo;Save
+                        Changes&rdquo;
                       </p>
                     )}
                   </div>
