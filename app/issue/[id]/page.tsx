@@ -22,8 +22,9 @@ import {
   Pencil,
   Save,
   X,
-  FileText,
-  FileQuestion,
+  Check,
+  Clock,
+  AlertCircle,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Mediation } from "../../../types/mediation";
@@ -41,6 +42,7 @@ export default function IssueDetails({
   const resolvedParams = use(params);
   const [mediation, setMediation] = useState<Mediation | null>(null);
   const [party, setParty] = useState<Party | null>(null);
+  const [partyStatuses, setPartyStatuses] = useState<Record<string, Party>>({});
   const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -99,37 +101,52 @@ export default function IssueDetails({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [mediationResponse, partyResponse] = await Promise.all([
-          fetch("/api/nillion/read", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              schema: "mediationSchema",
-              filter: {
-                _id: resolvedParams.id,
+        const [mediationResponse, partyResponse, allPartiesResponse] =
+          await Promise.all([
+            fetch("/api/nillion/read", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
               },
+              body: JSON.stringify({
+                schema: "mediationSchema",
+                filter: {
+                  _id: resolvedParams.id,
+                },
+              }),
             }),
-          }),
-          fetch("/api/nillion/read", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              schema: "partySchema",
-              filter: {
-                mediationId: resolvedParams.id,
-                address: address,
+            fetch("/api/nillion/read", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
               },
+              body: JSON.stringify({
+                schema: "partySchema",
+                filter: {
+                  mediationId: resolvedParams.id,
+                  address: address,
+                },
+              }),
             }),
-          }),
-        ]);
+            // Fetch all parties for this mediation
+            fetch("/api/nillion/read", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                schema: "partySchema",
+                filter: {
+                  mediationId: resolvedParams.id,
+                },
+              }),
+            }),
+          ]);
 
-        const [mediationData, partyData] = await Promise.all([
+        const [mediationData, partyData, allPartiesData] = await Promise.all([
           mediationResponse.json(),
           partyResponse.json(),
+          allPartiesResponse.json(),
         ]);
 
         if (
@@ -149,6 +166,15 @@ export default function IssueDetails({
           partyData.records.length > 0
         ) {
           setParty(partyData.records[0]);
+        }
+
+        // Process all parties data
+        if (allPartiesData.success && allPartiesData.records) {
+          const statusMap: Record<string, Party> = {};
+          allPartiesData.records.forEach((p: Party) => {
+            statusMap[p.address.toLowerCase()] = p;
+          });
+          setPartyStatuses(statusMap);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -483,125 +509,154 @@ export default function IssueDetails({
             )}
 
             {/* Parties */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <UsersRound className="w-5 h-5 text-white" />
-                <h2 className="text-xl font-serif text-white">Parties</h2>
-              </div>
+            {mediation.creator.toLowerCase() === address?.toLowerCase() && (
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <UsersRound className="w-5 h-5 text-white" />
+                  <h2 className="text-xl font-serif text-white">Parties</h2>
+                </div>
 
-              <div className="space-y-4">
-                {/* Existing Parties */}
-                {mediation.parties.map(
-                  (party, index) =>
-                    !removedPartyIndexes.includes(index) && (
-                      <div
-                        key={party}
-                        className="flex items-center justify-between text-white/80"
-                      >
-                        <span className="font-medium">
-                          Party{" "}
-                          {index +
-                            1 -
-                            removedPartyIndexes.filter((i) => i < index).length}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <code className="bg-white/10 px-3 py-1 rounded-lg">
-                            {party}
-                          </code>
-                          {isEditMode && (
-                            <button
-                              onClick={() =>
-                                setRemovedPartyIndexes([
-                                  ...removedPartyIndexes,
-                                  index,
-                                ])
-                              }
-                              className="text-red-400 hover:text-red-300"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          )}
+                <div className="space-y-4">
+                  {/* Existing Parties */}
+                  {mediation.parties.map(
+                    (party, index) =>
+                      !removedPartyIndexes.includes(index) && (
+                        <div
+                          key={party}
+                          className="flex items-center justify-between text-white/80"
+                        >
+                          <span className="font-medium">
+                            Party{" "}
+                            {index +
+                              1 -
+                              removedPartyIndexes.filter((i) => i < index)
+                                .length}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <div className="relative">
+                              <code className="bg-white/10 px-3 py-1 rounded-lg">
+                                {party}
+                              </code>
+                              {mediation.creator.toLowerCase() ===
+                                address?.toLowerCase() && (
+                                <div
+                                  className={`absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center text-white ${
+                                    partyStatuses[party.toLowerCase()]
+                                      ? partyStatuses[party.toLowerCase()]
+                                          .status === "received"
+                                        ? "bg-green-400"
+                                        : "bg-yellow-400" // submitted
+                                      : "bg-red-400"
+                                  }`}
+                                >
+                                  {partyStatuses[party.toLowerCase()] ? (
+                                    partyStatuses[party.toLowerCase()]
+                                      .status === "received" ? (
+                                      <Check className="w-3 h-3" />
+                                    ) : (
+                                      <Clock className="w-3 h-3" /> // submitted
+                                    )
+                                  ) : (
+                                    <AlertCircle className="w-3 h-3" />
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            {isEditMode && (
+                              <button
+                                onClick={() =>
+                                  setRemovedPartyIndexes([
+                                    ...removedPartyIndexes,
+                                    index,
+                                  ])
+                                }
+                                className="text-red-400 hover:text-red-300"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    )
-                )}
+                      )
+                  )}
 
-                {/* Staged Parties */}
-                {stagedParties.map((party, index) => (
-                  <div
-                    key={`staged-${index}`}
-                    className="flex items-center justify-between text-white/80"
-                  >
-                    <span className="font-medium">
-                      Party {mediation.parties.length + index + 1}
-                    </span>
-                    <div className="flex items-center gap-2">
+                  {/* Staged Parties */}
+                  {stagedParties.map((party, index) => (
+                    <div
+                      key={`staged-${index}`}
+                      className="flex items-center justify-between text-white/80"
+                    >
+                      <span className="font-medium">
+                        Party {mediation.parties.length + index + 1}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <code className="bg-white/10 px-3 py-1 rounded-lg">
+                          {party.address}
+                        </code>
+                        {isEditMode && (
+                          <button
+                            onClick={() => {
+                              setStagedParties(
+                                stagedParties.filter((_, i) => i !== index)
+                              );
+                            }}
+                            className="text-red-400 hover:text-red-300"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Mediator */}
+                  {mediation.mediator && (
+                    <div className="flex items-center justify-between text-white/80">
+                      <span className="font-medium">Mediator</span>
                       <code className="bg-white/10 px-3 py-1 rounded-lg">
-                        {party.address}
+                        {mediation.mediator}
                       </code>
-                      {isEditMode && (
+                    </div>
+                  )}
+
+                  {/* Add Party Input */}
+                  {isEditMode && (
+                    <div className="pt-4 border-t border-white/10">
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={newPartyAddress}
+                          onChange={(e) => setNewPartyAddress(e.target.value)}
+                          placeholder="Enter wallet address..."
+                          className="flex-1 bg-white/10 text-white placeholder:text-white/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white/50"
+                        />
                         <button
                           onClick={() => {
-                            setStagedParties(
-                              stagedParties.filter((_, i) => i !== index)
-                            );
+                            if (newPartyAddress) {
+                              setStagedParties([
+                                ...stagedParties,
+                                { address: newPartyAddress },
+                              ]);
+                              setNewPartyAddress("");
+                            }
                           }}
-                          className="text-red-400 hover:text-red-300"
+                          disabled={!newPartyAddress}
+                          className="flex items-center gap-2 px-4 py-2 bg-blue-500/80 hover:bg-blue-500/90 text-white rounded-lg backdrop-blur-sm transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          <X className="w-4 h-4" />
+                          Add Party
                         </button>
+                      </div>
+                      {stagedParties.length > 0 && (
+                        <p className="text-white/60 text-xs mt-2">
+                          New parties will be saved when you click &ldquo;Save
+                          Changes&rdquo;
+                        </p>
                       )}
                     </div>
-                  </div>
-                ))}
-
-                {/* Mediator */}
-                {mediation.mediator && (
-                  <div className="flex items-center justify-between text-white/80">
-                    <span className="font-medium">Mediator</span>
-                    <code className="bg-white/10 px-3 py-1 rounded-lg">
-                      {mediation.mediator}
-                    </code>
-                  </div>
-                )}
-
-                {/* Add Party Input */}
-                {isEditMode && (
-                  <div className="pt-4 border-t border-white/10">
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={newPartyAddress}
-                        onChange={(e) => setNewPartyAddress(e.target.value)}
-                        placeholder="Enter wallet address..."
-                        className="flex-1 bg-white/10 text-white placeholder:text-white/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white/50"
-                      />
-                      <button
-                        onClick={() => {
-                          if (newPartyAddress) {
-                            setStagedParties([
-                              ...stagedParties,
-                              { address: newPartyAddress },
-                            ]);
-                            setNewPartyAddress("");
-                          }
-                        }}
-                        disabled={!newPartyAddress}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-500/80 hover:bg-blue-500/90 text-white rounded-lg backdrop-blur-sm transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Add Party
-                      </button>
-                    </div>
-                    {stagedParties.length > 0 && (
-                      <p className="text-white/60 text-xs mt-2">
-                        New parties will be saved when you click &ldquo;Save
-                        Changes&rdquo;
-                      </p>
-                    )}
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Resolution Details */}
             {(mediation.resolution || mediation.resolutionDate) && (
@@ -640,11 +695,8 @@ export default function IssueDetails({
                 </div>
                 {party ? (
                   <div className="text-white/80">
-                    <p className="mb-2">Status: {party.status}</p>
                     {party.statement && (
-                      <div className="bg-white/10 rounded-lg p-4">
-                        <p className="whitespace-pre-wrap">{party.statement}</p>
-                      </div>
+                      <p className="whitespace-pre-wrap">{party.statement}</p>
                     )}
                   </div>
                 ) : (

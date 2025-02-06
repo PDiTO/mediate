@@ -7,5 +7,5 @@ export interface Party {
   txHash: string;
   createdAt: string;
   updatedAt: string;
-  status: "pending" | "submitted" | "received";
+  status: "submitted" | "received";
 }

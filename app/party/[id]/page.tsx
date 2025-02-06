@@ -109,7 +109,7 @@ export default function PartyStatement({
 
     setIsSubmitting(true);
     try {
-      const response = await fetch("/api/nillion/create", {
+      const response = await fetch("/api/nillion/create/party", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -119,8 +119,10 @@ export default function PartyStatement({
           data: {
             mediationId: mediation._id,
             address: address,
-            statement,
+            statement: { $allot: statement },
             status: "submitted",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
           },
         }),
       });
@@ -216,6 +218,7 @@ export default function PartyStatement({
               <button
                 type="button"
                 onClick={() => router.push(`/issue/${mediation._id}`)}
+                disabled={isSubmitting}
                 className="flex items-center gap-2 px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg backdrop-blur-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
