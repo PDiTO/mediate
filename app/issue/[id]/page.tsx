@@ -1,6 +1,10 @@
 "use client";
 
-import { useAccount } from "wagmi";
+import {
+  useAccount,
+  useSendTransaction,
+  useWaitForTransactionReceipt,
+} from "wagmi";
 import { useEffect, use, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "../../../components/Navbar";
@@ -22,8 +26,8 @@ import {
 import { format } from "date-fns";
 import { Mediation } from "../../../types/mediation";
 import { getModel } from "../../../lib/models/models";
-import { TransactionDefault } from "@coinbase/onchainkit/transaction";
 import { parseEther } from "viem";
+
 export default function IssueDetails({
   params,
 }: {
@@ -42,6 +46,12 @@ export default function IssueDetails({
   const [newPartyAddress, setNewPartyAddress] = useState("");
   const [stagedParties, setStagedParties] = useState<{ address: string }[]>([]);
   const [removedPartyIndexes, setRemovedPartyIndexes] = useState<number[]>([]);
+
+  const { data: hash, sendTransaction, isPending } = useSendTransaction();
+
+  const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash: hash,
+  });
 
   useEffect(() => {
     const fetchMediation = async () => {
@@ -486,6 +496,23 @@ export default function IssueDetails({
             {mediation.status === "open" && address === mediation.creator && (
               <div className="space-y-6 pt-4">
                 {/* Primary Fund Button */}
+                <div className="flex justify-center">
+                  {!isEditMode && (
+                    <button
+                      disabled={isPending}
+                      onClick={() => {
+                        sendTransaction({
+                          to: mediation.mediator as `0x${string}`,
+                          value: parseEther(mediation.amount.toString()),
+                        });
+                      }}
+                      className="max-w-md flex items-center justify-center gap-2 px-8 py-4 bg-blue-500/80 hover:bg-blue-500/90 text-white rounded-lg backdrop-blur-sm transition-all text-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow hover:shadow-blue-500/20"
+                    >
+                      <CircleDollarSign className="w-5 h-5" />
+                      Fund Mediation ({mediation.amount} ETH)
+                    </button>
+                  )}
+                </div>
 
                 {/* Secondary Actions */}
                 <div className="flex justify-center gap-3">
@@ -514,6 +541,7 @@ export default function IssueDetails({
                   ) : (
                     <>
                       <button
+                        disabled={isPending || isDeleting}
                         onClick={() => setIsEditMode(true)}
                         className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg backdrop-blur-sm transition-all text-sm font-medium shadow hover:shadow-white/20 w-24"
                       >
@@ -522,7 +550,7 @@ export default function IssueDetails({
                       </button>
                       <button
                         onClick={handleDelete}
-                        disabled={isDeleting}
+                        disabled={isDeleting || isPending}
                         className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-red-500/80 hover:bg-red-500/90 text-white rounded-lg backdrop-blur-sm transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow hover:shadow-red-500/20 w-24"
                       >
                         <Trash2 className="w-4 h-4" />
