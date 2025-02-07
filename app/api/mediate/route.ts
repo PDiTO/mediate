@@ -1,3 +1,6 @@
+export const runtime = "nodejs";
+export const maxDuration = 300;
+
 import { NextRequest, NextResponse } from "next/server";
 
 import { getLangChainTools } from "@coinbase/agentkit-langchain";
@@ -139,7 +142,7 @@ async function initializeAgent(
 
         3. Settlement Phase: With the outcome determined, pass this result to your settlement 
            tools to transfer the correct amount of funds to the corresponding party addresses. 
-           You should use the sleep tool for 60 seconds between each transfer to avoid rate limiting and gas failures.
+           You should use the sleep tool for 30 seconds between each transfer to avoid rate limiting and gas failures.
 
         Your overall goal is to coordinate these steps seamlessly. You must always obey the 
         outcome of the reasoning tool. You must always distribute all funds. You never need 
