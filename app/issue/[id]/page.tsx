@@ -25,6 +25,7 @@ import {
   Check,
   Clock,
   AlertCircle,
+  ExternalLink,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Mediation } from "../../../types/mediation";
@@ -746,30 +747,6 @@ export default function IssueDetails({
               </div>
             )}
 
-            {/* Resolution Details */}
-            {(mediation.resolution || mediation.resolutionDate) && (
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
-                <h2 className="text-xl font-serif text-white mb-4">
-                  Resolution
-                </h2>
-                {mediation.resolutionDate && (
-                  <div className="text-white/80 mb-4">
-                    <div className="flex items-center justify-between">
-                      <span>Resolved at</span>
-                      <span>
-                        {format(new Date(mediation.resolutionDate), "PPP")}
-                      </span>
-                    </div>
-                  </div>
-                )}
-                {mediation.resolution && (
-                  <p className="text-white/80 text-lg leading-relaxed whitespace-pre-wrap">
-                    {mediation.resolution}
-                  </p>
-                )}
-              </div>
-            )}
-
             {/* Party Statement - Only show if user is a party */}
             {mediation.parties.some(
               (p) => p.toLowerCase() === address?.toLowerCase()
@@ -796,6 +773,58 @@ export default function IssueDetails({
                     >
                       Submit Statement
                     </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Resolution Details */}
+            {(mediation.resolution || mediation.resolutionDate) && (
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
+                <h2 className="text-xl font-serif text-white mb-4">
+                  Resolution
+                </h2>
+                {mediation.resolutionDate && (
+                  <div className="text-white/80 mb-4">
+                    <div className="flex items-center justify-between">
+                      <span>Resolved at</span>
+                      <span>
+                        {format(new Date(mediation.resolutionDate), "PPP")}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                {mediation.resolution && (
+                  <p className="text-white/80 text-lg leading-relaxed whitespace-pre-wrap mb-4">
+                    {mediation.resolution}
+                  </p>
+                )}
+                {/* Show party's share and transaction if they are a party */}
+                {party?.amount && party?.txHash && (
+                  <div className="mt-4 pt-4 border-t border-white/10">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CircleDollarSign className="w-5 h-5 text-white" />
+                      <h3 className="text-lg font-serif text-white">
+                        Your Settlement
+                      </h3>
+                    </div>
+                    <div className="flex items-center justify-between  rounded-lg p-3">
+                      <span className="text-white/80">Share Amount</span>
+
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono text-white text-lg">
+                          {party.amount}
+                        </span>
+                        <a
+                          href={`https://sepolia.basescan.org/tx/${party.txHash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-blue-300 hover:text-blue-200 transition-colors"
+                        >
+                          <ExternalLink className="w-4 h-4 text-white" />
+                        </a>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

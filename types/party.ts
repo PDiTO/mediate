@@ -3,7 +3,7 @@ export interface Party {
   mediationId: string;
   address: string;
   statement: string;
-  share: number;
+  amount: string;
   txHash: string;
   createdAt: string;
   updatedAt: string;

@@ -108,13 +108,7 @@ export default function Navbar() {
                 >
                   Use Cases
                 </Link>
-                <Link
-                  href="/#technology"
-                  onClick={scrollToSection("technology")}
-                  className="text-white/90 hover:text-white transition-colors cursor-pointer"
-                >
-                  Technology
-                </Link>
+
                 <Link
                   href="/#community"
                   onClick={scrollToSection("community")}
