@@ -766,7 +766,7 @@ export default function IssueDetails({
                   </div>
                 ) : (
                   <div className="text-white/80">
-                    <p>You haven't submitted your statement yet.</p>
+                    <p>You have not submitted your statement yet.</p>
                     <button
                       onClick={() => router.push(`/party/${mediation._id}`)}
                       className="mt-4 bg-white/20 hover:bg-white/30 text-white px-6 py-2 rounded-lg backdrop-blur-sm transition-all"
