@@ -31,6 +31,7 @@ import { Mediation } from "../../../types/mediation";
 import { Party } from "../../../types/party";
 import { getModel } from "../../../lib/models/models";
 import { parseEther } from "viem";
+import { baseSepolia } from "viem/chains";
 
 export default function IssueDetails({
   params,
@@ -52,6 +53,8 @@ export default function IssueDetails({
   const [newPartyAddress, setNewPartyAddress] = useState("");
   const [stagedParties, setStagedParties] = useState<{ address: string }[]>([]);
   const [removedPartyIndexes, setRemovedPartyIndexes] = useState<number[]>([]);
+  const [isMediating, setIsMediating] = useState(false);
+  const [mediationError, setMediationError] = useState<string | null>(null);
 
   const { data: hash, sendTransaction, isPending } = useSendTransaction();
 
@@ -249,9 +252,9 @@ export default function IssueDetails({
       label: "Funded",
     },
     pending: {
-      icon: Hourglass,
-      color: "text-gray-500",
-      label: "Pending",
+      icon: Bot,
+      color: "text-white animate-bot-bounce",
+      label: "Mediating",
     },
   };
 
@@ -331,6 +334,48 @@ export default function IssueDetails({
     }
   };
 
+  const handleStartMediation = async () => {
+    if (!mediation?._id) return;
+
+    setIsMediating(true);
+    setMediationError(null);
+
+    try {
+      // Update UI status immediately
+      setMediation((prev) => (prev ? { ...prev, status: "pending" } : null));
+
+      const response = await fetch("/api/mediate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: mediation._id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to start mediation");
+      }
+
+      // Update mediation with response data if needed
+      if (data.mediation) {
+        setMediation(data.mediation);
+      }
+    } catch (error) {
+      console.error("Mediation error:", error);
+      setMediationError(
+        error instanceof Error ? error.message : "Failed to start mediation"
+      );
+      // Revert status on error
+      setMediation((prev) => (prev ? { ...prev, status: "funded" } : null));
+    } finally {
+      setIsMediating(false);
+    }
+  };
+
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-blue-500 via-teal-500 to-emerald-500 animate-gradient-hero">
       <Navbar />
@@ -366,6 +411,33 @@ export default function IssueDetails({
           </div>
 
           {/* Action Buttons */}
+          {mediation.status === "funded" && address === mediation.creator && (
+            <div className="w-full max-w-3xl flex justify-between items-center mb-6">
+              <button
+                onClick={() => handleStartMediation()}
+                disabled={isMediating}
+                className="flex items-center gap-2 px-6 py-2 bg-indigo-500/70 hover:bg-indigo-500/90 text-white rounded-lg backdrop-blur-sm transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-indigo-500/20"
+              >
+                {isMediating ? (
+                  <>
+                    <LoadingSpinner size="sm" />
+                    <span>Mediating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Bot className="w-4 h-4" />
+                    <span>Start Mediation</span>
+                  </>
+                )}
+              </button>
+              {mediationError && (
+                <div className="text-red-400 text-sm ml-4">
+                  {mediationError}
+                </div>
+              )}
+            </div>
+          )}
+
           {mediation.status === "open" && address === mediation.creator && (
             <div className="w-full max-w-3xl flex justify-between items-center mb-6">
               {/* Fund Button */}
@@ -376,6 +448,7 @@ export default function IssueDetails({
                     sendTransaction({
                       to: mediation.mediator as `0x${string}`,
                       value: parseEther(mediation.amount.toString()),
+                      // chainId: baseSepolia.id,
                     });
                   }}
                   className="flex items-center gap-2 px-6 py-2 bg-indigo-500/70 hover:bg-indigo-500/90 text-white rounded-lg backdrop-blur-sm transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-indigo-500/20"
@@ -534,9 +607,24 @@ export default function IssueDetails({
                           </span>
                           <div className="flex items-center gap-2">
                             <div className="relative">
-                              <code className="bg-white/10 px-3 py-1 rounded-lg">
-                                {party}
-                              </code>
+                              {partyStatuses[party.toLowerCase()]?.txHash ? (
+                                <a
+                                  href={`https://sepolia.basescan.org/tx/${
+                                    partyStatuses[party.toLowerCase()].txHash
+                                  }`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="hover:opacity-80 transition-opacity"
+                                >
+                                  <code className="bg-white/10 px-3 py-1 rounded-lg">
+                                    {party}
+                                  </code>
+                                </a>
+                              ) : (
+                                <code className="bg-white/10 px-3 py-1 rounded-lg">
+                                  {party}
+                                </code>
+                              )}
                               {mediation.creator.toLowerCase() ===
                                 address?.toLowerCase() && (
                                 <div

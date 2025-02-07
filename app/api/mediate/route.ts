@@ -14,7 +14,25 @@ import { HumanMessage } from "@langchain/core/messages";
 import { MemorySaver } from "@langchain/langgraph";
 import { Serper } from "@langchain/community/tools/serper";
 
-import { ReasonNewTool } from "@/lib/tools/reason_new";
+import { ReasonTool } from "@/lib/tools/reason";
+import { SleepTool } from "@/lib/tools/sleep";
+import { readNillionRecordsWithSchema } from "@/lib/nillion/core/read";
+import { Party } from "@/types/party";
+import { Mediation } from "@/types/mediation";
+import { ModelId } from "@/lib/models/models";
+import { MODEL_IDS } from "@/lib/models/models";
+import { updateNillionRecordWithSchema } from "@/lib/nillion/core/update";
+
+type MediationResponse = {
+  status: "success" | "failure";
+  justification: string;
+  outcomes: {
+    address: string;
+    amount: string;
+    status: "success" | "failure";
+    transactionHash: string | null;
+  }[];
+};
 
 let agent: any = null;
 let agentConfig: any = null;
@@ -38,14 +56,17 @@ function validateEnvironment(): boolean {
   return true;
 }
 
-async function initializeAgent() {
+async function initializeAgent(
+  walletData: string,
+  reasoningModelId: ModelId = MODEL_IDS.DEEPSEEK_R1_70B_DISPUTE
+) {
   if (agent && agentConfig) {
     return { agent, agentConfig };
   }
 
   try {
     const llm = new ChatOpenAI({
-      model: process.env.MODEL_NAME ?? "gpt-4o-mini",
+      model: "gpt-4o-mini",
     });
 
     // Configure CDP Wallet Provider
@@ -55,6 +76,7 @@ async function initializeAgent() {
         /\\n/g,
         "\n"
       ),
+      cdpWalletData: walletData,
       networkId: process.env.NETWORK_ID || "base-sepolia",
     };
 
@@ -69,7 +91,8 @@ async function initializeAgent() {
     const tools = [
       ...(await getLangChainTools(agentkit)),
       new Serper(process.env.SERPER_API_KEY!),
-      new ReasonNewTool(),
+      new ReasonTool(reasoningModelId),
+      new SleepTool(),
     ];
 
     // Store buffered conversation history in memory
@@ -116,7 +139,8 @@ async function initializeAgent() {
            Only ever call the reasoning tool once.
 
         3. Settlement Phase: With the outcome determined, pass this result to your settlement 
-           tools to transfer the correct amount of funds to the corresponding party addresses.
+           tools to transfer the correct amount of funds to the corresponding party addresses. 
+           You should use the sleep tool for 60 seconds between each transfer to avoid rate limiting and gas failures.
 
         Your overall goal is to coordinate these steps seamlessly. You must always obey the 
         outcome of the reasoning tool. You must always distribute all funds. You never need 
@@ -126,12 +150,13 @@ async function initializeAgent() {
 
         Your final response should be a JSON object in the following format:
         {
-          "status": "Either 'success' or 'failure'",
+          "status": "Either 'resolved' or 'unresolved'",
           "justification": "The reasoning behind the outcome split. This should be a short explanation of the outcomes, not the status.",
           "outcomes": [
             {
               "address": "wallet address of party 1",
               "amount": "amount of funds to transferred",
+              "status": "Either 'success' or 'failure'",
               "transactionHash": "transaction hash of the transfer"
             }
           ]
@@ -156,18 +181,44 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { message } = body;
+    const { id } = body;
 
-    if (!message) {
-      return NextResponse.json(
-        { error: "Message is required" },
-        { status: 400 }
-      );
+    if (!id) {
+      return NextResponse.json({ error: "Id is required" }, { status: 400 });
     }
 
-    const { agent, agentConfig } = await initializeAgent();
+    // Get data
+    const mediationData = await readNillionRecordsWithSchema(
+      "mediationSchema",
+      {
+        _id: id,
+      }
+    );
+    const partiesData = await readNillionRecordsWithSchema("partySchema", {
+      mediationId: id,
+    });
 
-    // Process the message
+    await updateNillionRecordWithSchema("mediationSchema", id, {
+      status: "pending",
+    });
+
+    const mediation: Mediation = mediationData[0];
+    const parties: Party[] = partiesData;
+
+    const message = `
+Title: ${mediation.title}\n
+Description: ${mediation.description}\n
+Total Funds: ${mediation.amount} ETH\n
+Parties:
+${parties
+  .filter((p) => p.statement)
+  .map((p) => `Party ${p.address}: ${p.statement}`)
+  .join("\n")}`;
+
+    const { agent, agentConfig } = await initializeAgent(
+      mediation.mediatorCDPData!
+    );
+
     const responses: any[] = [];
     const stream = await agent.stream(
       { messages: [new HumanMessage(message)] },
@@ -188,7 +239,29 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ responses });
+    const lastResponse = responses[responses.length - 1].content;
+
+    const jsonString = lastResponse.replace(/^```json\n|\n```$/g, "");
+    const result = JSON.parse(jsonString) as MediationResponse;
+
+    await updateNillionRecordWithSchema("mediationSchema", id, {
+      status: result.status,
+      resolution: result.justification,
+    });
+
+    for (const outcome of result.outcomes) {
+      const id = parties.find((p) => p.address === outcome.address)!._id;
+      await updateNillionRecordWithSchema("partySchema", id, {
+        status: outcome.status === "success" ? "received" : "submitted",
+        amount: outcome.amount,
+        txHash: outcome.transactionHash,
+        updatedAt: new Date().toISOString(),
+      });
+    }
+
+    console.log(result);
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Error processing request:", error);
     return NextResponse.json(

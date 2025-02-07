@@ -1,6 +1,6 @@
 export type ModelId = (typeof MODEL_IDS)[keyof typeof MODEL_IDS];
 
-type ModelConfig = {
+export type ModelConfig = {
   name: string;
   description: string;
   systemPrompt: string;
@@ -13,8 +13,7 @@ export type Models = {
 
 export const MODEL_IDS = {
   DEEPSEEK_R1_671B_FUND: "deepseek-r1-671b",
-  DEEPSEEK_R1_671B_DISPUTE: "deepseek-r1-671b-dispute",
-  OPENAI_GPT_4O: "gpt-4o-dispute",
+  DEEPSEEK_R1_70B_DISPUTE: "deepseek-r1-70b-dispute",
 } as const;
 
 export const MODELS: Models = {
@@ -26,26 +25,16 @@ export const MODELS: Models = {
       "You are a funding model that is used to make funding decisions and token distribution schemes.",
     model: "deepseek-r1-671b",
   },
-  [MODEL_IDS.DEEPSEEK_R1_671B_DISPUTE]: {
+  [MODEL_IDS.DEEPSEEK_R1_70B_DISPUTE]: {
     name: "DeepSeek R1 Dispute Model",
     description:
       "DeepSeek Reasoning model optimised for settling disputes between two parties.",
     systemPrompt:
       "You are a dispute model that is used to settle disputes between two parties.",
-    model: "deepseek-r1-671b",
-  },
-  [MODEL_IDS.OPENAI_GPT_4O]: {
-    name: "OpenAI GPT-4o Dispute Model",
-    description:
-      "OpenAI GPT-4o model optimised for settling disputes between two parties.",
-    systemPrompt:
-      "You are a dispute model that is used to settle disputes between two parties.",
-    model: "gpt-4o",
+    model: "deepseek-r1-llama-70b",
   },
 } as const;
 
 export function getModel(modelId: ModelId): ModelConfig {
   return MODELS[modelId];
 }
-
-const model = getModel("deepseek-r1-671b");

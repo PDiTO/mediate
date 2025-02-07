@@ -10,7 +10,7 @@ import {
   WalletDropdownFundLink,
 } from "@coinbase/onchainkit/wallet";
 import { Address, Identity } from "@coinbase/onchainkit/identity";
-
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const { isConnected, address, chainId } = useAccount();
@@ -135,6 +135,8 @@ export default function Navbar() {
                   <ConnectWalletText>Launch App</ConnectWalletText>
                 )}
               </ConnectWallet>
+
+              {/* <ConnectButton /> */}
 
               <WalletDropdown className="bg-transparent text-white rounded-lg backdrop-blur-sm transition-all">
                 <Identity

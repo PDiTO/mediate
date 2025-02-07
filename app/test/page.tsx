@@ -17,7 +17,7 @@ export default function TestPage() {
   const { isConnected, address } = useAccount();
   const router = useRouter();
   const [selectedModel, setSelectedModel] = useState<ModelId>(
-    MODEL_IDS.DEEPSEEK_R1_671B_DISPUTE
+    MODEL_IDS.DEEPSEEK_R1_70B_DISPUTE
   );
   const [parties, setParties] = useState<Party[]>([
     { address: "", evidence: "" },
@@ -389,49 +389,99 @@ Please analyze this mediation request and provide your assessment.
                           Status: {mediation.status}
                         </p>
                       </div>
-                      <button
-                        onClick={async (e) => {
-                          e.preventDefault();
-                          if (
-                            window.confirm(
-                              "Are you sure you want to delete this mediation?"
-                            )
-                          ) {
+                      <div className="flex gap-2">
+                        <button
+                          onClick={async (e) => {
+                            e.preventDefault();
                             try {
-                              const res = await fetch("/api/nillion/delete", {
-                                method: "POST",
-                                headers: {
-                                  "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({
-                                  schema: "mediationSchema",
-                                  id: mediation._id,
-                                }),
-                              });
-                              const data = await res.json();
+                              const response = await fetch(
+                                "/api/nillion/update",
+                                {
+                                  method: "PUT",
+                                  headers: {
+                                    "Content-Type": "application/json",
+                                  },
+                                  body: JSON.stringify({
+                                    id: mediation._id,
+                                    status: "funded",
+                                  }),
+                                }
+                              );
+                              const data = await response.json();
                               if (data.success) {
                                 setMediations(
-                                  mediations.filter(
-                                    (m) => m._id !== mediation._id
+                                  mediations.map((m) =>
+                                    m._id === mediation._id
+                                      ? { ...m, status: "funded" }
+                                      : m
                                   )
                                 );
                               } else {
                                 alert(
-                                  "Failed to delete mediation: " + data.error
+                                  "Failed to update mediation status: " +
+                                    data.error
                                 );
                               }
                             } catch (error) {
-                              console.error("Error deleting mediation:", error);
+                              console.error("Error updating mediation:", error);
                               alert(
-                                "Error deleting mediation. Check console for details."
+                                "Error updating mediation. Check console for details."
                               );
                             }
-                          }
-                        }}
-                        className="p-2 hover:bg-white/20 text-white/60 hover:text-white rounded-lg transition-all"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                          }}
+                          className="p-2 hover:bg-white/20 text-white/60 hover:text-white rounded-lg transition-all"
+                          title="Fund Mediation"
+                        >
+                          <span className="text-xl">💰</span>
+                        </button>
+                        <button
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            if (
+                              window.confirm(
+                                "Are you sure you want to delete this mediation?"
+                              )
+                            ) {
+                              try {
+                                const res = await fetch("/api/nillion/delete", {
+                                  method: "POST",
+                                  headers: {
+                                    "Content-Type": "application/json",
+                                  },
+                                  body: JSON.stringify({
+                                    schema: "mediationSchema",
+                                    id: mediation._id,
+                                  }),
+                                });
+                                const data = await res.json();
+                                if (data.success) {
+                                  setMediations(
+                                    mediations.filter(
+                                      (m) => m._id !== mediation._id
+                                    )
+                                  );
+                                } else {
+                                  alert(
+                                    "Failed to delete mediation: " + data.error
+                                  );
+                                }
+                              } catch (error) {
+                                console.error(
+                                  "Error deleting mediation:",
+                                  error
+                                );
+                                alert(
+                                  "Error deleting mediation. Check console for details."
+                                );
+                              }
+                            }
+                          }}
+                          className="p-2 hover:bg-white/20 text-white/60 hover:text-white rounded-lg transition-all"
+                          title="Delete Mediation"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>

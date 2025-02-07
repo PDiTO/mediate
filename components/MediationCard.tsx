@@ -12,6 +12,7 @@ import {
   FileText,
   FileQuestion,
   AlertCircle,
+  Bot,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
@@ -46,8 +47,8 @@ export default function MediationCard({
       color: "text-yellow-500",
     },
     pending: {
-      icon: Hourglass,
-      color: "text-gray-500",
+      icon: Bot,
+      color: "text-white",
     },
   };
 
