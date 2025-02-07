@@ -18,7 +18,7 @@ export const MODEL_IDS = {
 
 export const MODELS: Models = {
   [MODEL_IDS.DEEPSEEK_R1_671B_FUND]: {
-    name: "DeepSeek R1 Funding Model",
+    name: "DeepSeek R1 671B Funding Model",
     description:
       "DeepSeek Reasoning model optimised for funding decisions and token distribution schemes.",
     systemPrompt:
@@ -26,9 +26,9 @@ export const MODELS: Models = {
     model: "deepseek-r1-671b",
   },
   [MODEL_IDS.DEEPSEEK_R1_70B_DISPUTE]: {
-    name: "DeepSeek R1 Dispute Model",
+    name: "DeepSeek R1 70B LLAMA Dispute Model",
     description:
-      "DeepSeek Reasoning model optimised for settling disputes between two parties.",
+      "DeepSeek Reasoning model optimised for settling disputes between two parties only. ",
     systemPrompt:
       "You are a dispute model that is used to settle disputes between two parties.",
     model: "deepseek-r1-llama-70b",

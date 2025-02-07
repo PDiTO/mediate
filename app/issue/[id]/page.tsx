@@ -635,7 +635,7 @@ export default function IssueDetails({
                                       .status === "received" ? (
                                       <Check className="w-3 h-3" />
                                     ) : (
-                                      <Clock className="w-3 h-3" /> // submitted
+                                      <Clock className="w-3 h-3" />
                                     )
                                   ) : (
                                     <AlertCircle className="w-3 h-3" />
@@ -805,7 +805,7 @@ export default function IssueDetails({
 
                       <div className="flex items-center gap-3">
                         <span className="font-mono text-white text-lg">
-                          {party.amount}
+                          {party.amount} ETH
                         </span>
                         <a
                           href={`https://sepolia.basescan.org/tx/${party.txHash}`}

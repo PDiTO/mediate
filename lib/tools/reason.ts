@@ -15,10 +15,6 @@ const ReasonInputSchema = z.object({
     z.object({
       address: z.string().describe("The address of the party"),
       evidence: z.string().describe("The evidence given by the party"),
-      minSplit: z
-        .number()
-        .optional()
-        .describe("The minimum split for the party"),
     })
   ),
 });
@@ -60,9 +56,6 @@ export class ReasonTool extends StructuredTool {
         userPrompt += `Party ${index + 1} (${party.address}) Evidence: ${
           party.evidence
         }`;
-        if (party.minSplit !== undefined) {
-          userPrompt += ` Minimum acceptable split: ${party.minSplit}%`;
-        }
         userPrompt += "\n";
       });
 

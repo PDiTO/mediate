@@ -537,7 +537,6 @@ Please analyze this mediation request and provide your assessment.
             )}
           </div>
         </div>
-        <TransactionDefault calls={calls} />
       </div>
     </div>
   );

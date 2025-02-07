@@ -127,14 +127,12 @@ async function initializeAgent(
              "parties": [
                {
                  "address": "wallet address of party 1",
-                 "evidence": "evidence or arguments from party 1",
-                 "minSplit": "optional minimum percentage split required by party 1"
+                 "evidence": "evidence or arguments from party 1"
                },
                {
                  "address": "wallet address of party 2",
-                 "evidence": "evidence or arguments from party 2",
-                 "minSplit": "optional minimum percentage split required by party 2"
-               }
+                 "evidence": "evidence or arguments from party 2"
+                }
              ]
            }
            The tool will return an outcome which you must obey. Do not deviate from this outcome. 
@@ -142,7 +140,7 @@ async function initializeAgent(
 
         3. Settlement Phase: With the outcome determined, pass this result to your settlement 
            tools to transfer the correct amount of funds to the corresponding party addresses. 
-           You should use the sleep tool for 30 seconds between each transfer to avoid rate limiting and gas failures.
+           You should use the sleep tool for 10 seconds between each transfer to avoid rate limiting and gas failures.
 
         Your overall goal is to coordinate these steps seamlessly. You must always obey the 
         outcome of the reasoning tool. You must always distribute all funds. You never need 
@@ -153,7 +151,7 @@ async function initializeAgent(
         Your final response should be a JSON object in the following format:
         {
           "status": "Either 'resolved' or 'unresolved'",
-          "justification": "The reasoning behind the outcome split. This should be a short explanation of the outcomes, not the status.",
+          "justification": "The reasoning behind the outcome split. This should be a short explanation of the outcomes, not the status. You should refer to parties by their wallet address.",
           "outcomes": [
             {
               "address": "wallet address of party 1",
@@ -257,7 +255,10 @@ ${parties
     for (const outcome of result.outcomes) {
       const id = parties.find((p) => p.address === outcome.address)!._id;
       await updateNillionRecordWithSchema("partySchema", id, {
-        status: outcome.status === "success" ? "received" : "submitted",
+        status:
+          outcome.status === "success" || outcome.amount === "0"
+            ? "received"
+            : "submitted",
         amount: outcome.amount,
         txHash: outcome.transactionHash,
         updatedAt: new Date().toISOString(),

@@ -42,11 +42,7 @@
       },
       "model": {
         "type": "string",
-        "enum": [
-          "deepseek-r1-671b",
-          "deepseek-r1-671b-dispute",
-          "gpt-4o-dispute"
-        ],
+        "enum": ["deepseek-r1-671b", "deepseek-r1-70b-dispute"],
         "description": "The AI model ID used for mediation"
       },
       "status": {

@@ -3,7 +3,7 @@ import { postSchema } from "../../../../../lib/nillion/helpers/postSchema";
 
 export async function POST() {
   try {
-    await postSchema("partySchema");
+    await postSchema("mediationSchema");
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error("Error posting schema:", error);

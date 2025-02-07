@@ -18,7 +18,7 @@ export default function CreateIssue() {
     amount: "",
   });
   const [selectedModel, setSelectedModel] = useState<ModelId>(
-    MODEL_IDS.DEEPSEEK_R1_70B_DISPUTE
+    MODEL_IDS.DEEPSEEK_R1_671B_FUND
   );
   const [parties, setParties] = useState<string[]>(["", ""]);
   const [newParty, setNewParty] = useState("");
