@@ -4,7 +4,6 @@ import { getLangChainTools } from "@coinbase/agentkit-langchain";
 import {
   AgentKit,
   CdpWalletProvider,
-  erc20ActionProvider,
   walletActionProvider,
 } from "@coinbase/agentkit";
 
@@ -85,7 +84,7 @@ async function initializeAgent(
     // Initialize AgentKit
     const agentkit = await AgentKit.from({
       walletProvider,
-      actionProviders: [walletActionProvider(), erc20ActionProvider()],
+      actionProviders: [walletActionProvider()],
     });
 
     const tools = [
@@ -242,7 +241,10 @@ ${parties
     const lastResponse = responses[responses.length - 1].content;
 
     const jsonString = lastResponse.replace(/^```json\n|\n```$/g, "");
+    console.log(responses);
+
     const result = JSON.parse(jsonString) as MediationResponse;
+    console.log(result);
 
     await updateNillionRecordWithSchema("mediationSchema", id, {
       status: result.status,
@@ -258,8 +260,6 @@ ${parties
         updatedAt: new Date().toISOString(),
       });
     }
-
-    console.log(result);
 
     return NextResponse.json(result);
   } catch (error) {

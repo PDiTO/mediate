@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  useAccount,
-  useSendTransaction,
-  useWaitForTransactionReceipt,
-} from "wagmi";
+import { useAccount } from "wagmi";
 import { useEffect, use, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "../../../components/Navbar";
@@ -16,7 +12,6 @@ import {
   XCircle,
   DollarSign,
   Bot,
-  Hourglass,
   UsersRound,
   Trash2,
   Pencil,
@@ -32,7 +27,11 @@ import { Mediation } from "../../../types/mediation";
 import { Party } from "../../../types/party";
 import { getModel } from "../../../lib/models/models";
 import { parseEther } from "viem";
-import { baseSepolia } from "viem/chains";
+import {
+  Transaction,
+  TransactionButton,
+  TransactionSponsor,
+} from "@coinbase/onchainkit/transaction";
 
 export default function IssueDetails({
   params,
@@ -56,13 +55,7 @@ export default function IssueDetails({
   const [removedPartyIndexes, setRemovedPartyIndexes] = useState<number[]>([]);
   const [isMediating, setIsMediating] = useState(false);
   const [mediationError, setMediationError] = useState<string | null>(null);
-
-  const { data: hash, sendTransaction, isPending } = useSendTransaction();
-
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash: hash,
-    });
+  const [isConfirmed, setIsConfirmed] = useState(false);
 
   // Update mediation status when transaction is confirmed
   useEffect(() => {
@@ -443,33 +436,34 @@ export default function IssueDetails({
             <div className="w-full max-w-3xl flex justify-between items-center mb-6">
               {/* Fund Button */}
               {!isEditMode && (
-                <button
-                  disabled={isPending || isConfirming}
-                  onClick={() => {
-                    sendTransaction({
-                      to: mediation.mediator as `0x${string}`,
-                      value: parseEther(mediation.amount.toString()),
-                      // chainId: baseSepolia.id,
-                    });
+                <Transaction
+                  onSuccess={() => {
+                    setIsConfirmed(true);
                   }}
-                  className="flex items-center gap-2 px-6 py-2 bg-indigo-500/70 hover:bg-indigo-500/90 text-white rounded-lg backdrop-blur-sm transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-indigo-500/20"
+                  calls={[
+                    {
+                      to: mediation.mediator as `0x${string}`,
+                      value: parseEther(
+                        (
+                          mediation.amount +
+                          mediation.parties.length * 0.00001
+                        ).toString()
+                      ),
+                      data: "0x" as `0x${string}`,
+                    },
+                  ]}
                 >
-                  {isPending || isConfirming ? (
-                    <>
-                      <LoadingSpinner size="sm" />
-                      {isPending ? "Processing..." : "Confirming..."}
-                    </>
-                  ) : (
-                    <>
-                      <CircleDollarSign className="w-4 h-4" />
-                      <span>Fund ({mediation.amount} ETH)</span>
-                    </>
-                  )}
-                </button>
+                  <TransactionButton
+                    className="w-48 bg-indigo-500/70 hover:bg-indigo-500/90 text-white rounded-lg backdrop-blur-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-indigo-500/20 !font-medium"
+                    text={`Fund Issue + Fee`}
+                  />
+
+                  <TransactionSponsor />
+                </Transaction>
               )}
 
               {/* Edit/Delete Buttons */}
-              {!isPending && !isConfirming && !isEditMode && (
+              {!isEditMode && (
                 <div className="flex gap-2">
                   <button
                     onClick={() => setIsEditMode(true)}

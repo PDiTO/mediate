@@ -7,7 +7,8 @@ import Navbar from "../../components/Navbar";
 import { MODEL_IDS, MODELS, ModelId } from "../../lib/models/models";
 import { Bot, Plus, X, Loader2, Trash2 } from "lucide-react";
 import { Mediation } from "../../types/mediation";
-
+import { TransactionDefault } from "@coinbase/onchainkit/transaction";
+import { parseEther } from "viem";
 interface Party {
   address: string;
   evidence: string;
@@ -29,6 +30,14 @@ export default function TestPage() {
   const [response, setResponse] = useState<string[]>([]);
   const [isPostingSchema, setIsPostingSchema] = useState(false);
   const [mediations, setMediations] = useState<Mediation[]>([]);
+
+  const calls = [
+    {
+      to: "0x0000000000000000000000000000000000000000" as `0x${string}`,
+      value: parseEther("0.0001"),
+      data: "0x" as `0x${string}`,
+    },
+  ];
 
   // Fetch mediations
   useEffect(() => {
@@ -528,6 +537,7 @@ Please analyze this mediation request and provide your assessment.
             )}
           </div>
         </div>
+        <TransactionDefault calls={calls} />
       </div>
     </div>
   );
