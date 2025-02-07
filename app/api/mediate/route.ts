@@ -1,4 +1,4 @@
-export const runtime = "nodejs";
+export const runtime = "node";
 export const maxDuration = 300;
 
 import { NextRequest, NextResponse } from "next/server";
