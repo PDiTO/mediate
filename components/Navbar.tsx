@@ -1,6 +1,7 @@
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect } from "react";
-import { useAccount, useSignMessage } from "wagmi";
+import { useAccount } from "wagmi";
 import {
   Wallet,
   ConnectWallet,
@@ -12,7 +13,7 @@ import {
 import { Address, Identity } from "@coinbase/onchainkit/identity";
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -55,14 +56,16 @@ export default function Navbar() {
           <Link
             href={isConnected ? "/dashboard" : "/#home"}
             onClick={!isConnected ? scrollToSection("home") : undefined}
-            className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity"
+            className="flex items-center gap-1 text-white hover:opacity-80 transition-opacity"
           >
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-300 ${
-                scrolled ? "bg-white/20" : "bg-white/10"
-              }`}
-            >
-              <span className="text-2xl font-serif">M</span>
+            <div className="relative w-10 h-10 opacity-80">
+              <Image
+                src="/logo.svg"
+                alt="Mediate Logo"
+                fill
+                className="object-contain"
+                priority
+              />
             </div>
             <span className="text-2xl font-serif">Mediate</span>
           </Link>
@@ -83,12 +86,15 @@ export default function Navbar() {
                 >
                   Create New
                 </Link>
-                <Link
-                  href="/test"
-                  className="text-white/90 hover:text-white transition-colors"
-                >
-                  Test
-                </Link>
+                {address &&
+                  address === "0x2E14e1cBb0c387F85AdAc2E31fd473db7FAe647F" && (
+                    <Link
+                      href="/test"
+                      className="text-white/90 hover:text-white transition-colors"
+                    >
+                      Test
+                    </Link>
+                  )}
               </>
             ) : (
               <>

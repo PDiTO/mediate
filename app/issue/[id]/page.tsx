@@ -57,6 +57,90 @@ export default function IssueDetails({
   const [mediationError, setMediationError] = useState<string | null>(null);
   const [isConfirmed, setIsConfirmed] = useState(false);
 
+  const fetchMediationData = async () => {
+    try {
+      const [mediationResponse, partyResponse, allPartiesResponse] =
+        await Promise.all([
+          fetch("/api/nillion/read", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              schema: "mediationSchema",
+              filter: {
+                _id: resolvedParams.id,
+              },
+            }),
+          }),
+          fetch("/api/nillion/read", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              schema: "partySchema",
+              filter: {
+                mediationId: resolvedParams.id,
+                address: address,
+              },
+            }),
+          }),
+          // Fetch all parties for this mediation
+          fetch("/api/nillion/read", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              schema: "partySchema",
+              filter: {
+                mediationId: resolvedParams.id,
+              },
+            }),
+          }),
+        ]);
+
+      const [mediationData, partyData, allPartiesData] = await Promise.all([
+        mediationResponse.json(),
+        partyResponse.json(),
+        allPartiesResponse.json(),
+      ]);
+
+      if (
+        mediationData.success &&
+        mediationData.records &&
+        mediationData.records.length > 0
+      ) {
+        setMediation(mediationData.records[0]);
+      } else {
+        console.error("Mediation not found");
+        router.push("/dashboard");
+      }
+
+      if (
+        partyData.success &&
+        partyData.records &&
+        partyData.records.length > 0
+      ) {
+        setParty(partyData.records[0]);
+      }
+
+      // Process all parties data
+      if (allPartiesData.success && allPartiesData.records) {
+        const statusMap: Record<string, Party> = {};
+        allPartiesData.records.forEach((p: Party) => {
+          statusMap[p.address.toLowerCase()] = p;
+        });
+        setPartyStatuses(statusMap);
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Update mediation status when transaction is confirmed
   useEffect(() => {
     const updateMediationStatus = async () => {
@@ -96,92 +180,8 @@ export default function IssueDetails({
   }, [isConfirmed, mediation?._id]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [mediationResponse, partyResponse, allPartiesResponse] =
-          await Promise.all([
-            fetch("/api/nillion/read", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                schema: "mediationSchema",
-                filter: {
-                  _id: resolvedParams.id,
-                },
-              }),
-            }),
-            fetch("/api/nillion/read", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                schema: "partySchema",
-                filter: {
-                  mediationId: resolvedParams.id,
-                  address: address,
-                },
-              }),
-            }),
-            // Fetch all parties for this mediation
-            fetch("/api/nillion/read", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                schema: "partySchema",
-                filter: {
-                  mediationId: resolvedParams.id,
-                },
-              }),
-            }),
-          ]);
-
-        const [mediationData, partyData, allPartiesData] = await Promise.all([
-          mediationResponse.json(),
-          partyResponse.json(),
-          allPartiesResponse.json(),
-        ]);
-
-        if (
-          mediationData.success &&
-          mediationData.records &&
-          mediationData.records.length > 0
-        ) {
-          setMediation(mediationData.records[0]);
-        } else {
-          console.error("Mediation not found");
-          router.push("/dashboard");
-        }
-
-        if (
-          partyData.success &&
-          partyData.records &&
-          partyData.records.length > 0
-        ) {
-          setParty(partyData.records[0]);
-        }
-
-        // Process all parties data
-        if (allPartiesData.success && allPartiesData.records) {
-          const statusMap: Record<string, Party> = {};
-          allPartiesData.records.forEach((p: Party) => {
-            statusMap[p.address.toLowerCase()] = p;
-          });
-          setPartyStatuses(statusMap);
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (resolvedParams.id && address) {
-      fetchData();
+      fetchMediationData();
     }
   }, [resolvedParams.id, router, address]);
 
@@ -354,10 +354,8 @@ export default function IssueDetails({
         throw new Error(data.error || "Failed to start mediation");
       }
 
-      // Update mediation with response data if needed
-      if (data.mediation) {
-        setMediation(data.mediation);
-      }
+      // Reload all data after successful mediation
+      await fetchMediationData();
     } catch (error) {
       console.error("Mediation error:", error);
       setMediationError(

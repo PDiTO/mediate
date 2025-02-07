@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 import { useAccount } from "wagmi";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import Image from "next/image";
 
 export default function Home() {
   const { isConnected } = useAccount();
@@ -40,9 +41,18 @@ export default function Home() {
       >
         <div className="absolute inset-0 bg-gradient-to-br from-blue-400 via-teal-300 to-emerald-500 animate-gradient-hero"></div>
         <div className="relative z-10 text-center flex flex-col items-center gap-2">
-          <h1 className="text-9xl font-serif text-white tracking-tight">
-            Mediate
-          </h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-9xl font-serif text-white tracking-tight">
+              Mediate
+            </h1>
+            <Image
+              src="/logo.svg"
+              alt="Mediate Logo"
+              width={100}
+              height={100}
+              className="w-24 h-24"
+            />
+          </div>
           <TypeWriter sentences={questions} />
         </div>
       </section>
@@ -166,7 +176,7 @@ export default function Home() {
           <h2 className="text-6xl font-serif text-white mb-12">
             Join Our Community
           </h2>
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-2xl mx-auto pt-10">
             <div className="bg-white/10 backdrop-blur-lg rounded-xl p-8">
               <h3 className="text-2xl font-semibold text-white mb-4">
                 Get Early Access

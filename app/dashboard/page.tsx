@@ -8,6 +8,7 @@ import MediationCard from "../../components/MediationCard";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { Mediation } from "../../types/mediation";
 import { Party } from "../../types/party";
+import { Plus } from "lucide-react";
 
 export default function Dashboard() {
   const { isConnected, address } = useAccount();
@@ -114,8 +115,9 @@ export default function Dashboard() {
           <h1 className="text-6xl font-serif text-white">Dashboard</h1>
           <button
             onClick={() => router.push("/create")}
-            className="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-lg backdrop-blur-sm transition-all"
+            className="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-lg backdrop-blur-sm transition-all flex items-center gap-2"
           >
+            <Plus className="w-5 h-5" />
             Create New Issue
           </button>
         </div>
