@@ -51,7 +51,7 @@ export default function IssueDetails({
   const [editedDescription, setEditedDescription] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [newPartyAddress, setNewPartyAddress] = useState("");
-  const [stagedParties, setStagedParties] = useState<{ address: string }[]>([]);
+  const [stagedParties, setStagedParties] = useState<string[]>([]);
   const [removedPartyIndexes, setRemovedPartyIndexes] = useState<number[]>([]);
   const [isMediating, setIsMediating] = useState(false);
   const [mediationError, setMediationError] = useState<string | null>(null);
@@ -453,7 +453,7 @@ export default function IssueDetails({
                 >
                   <TransactionButton
                     className="w-48 bg-indigo-500/70 hover:bg-indigo-500/90 text-white rounded-lg backdrop-blur-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-indigo-500/20 !font-medium"
-                    text={`Fund Issue + Fee`}
+                    text={`Fund Issue & Fees`}
                   />
 
                   <TransactionSponsor />
@@ -672,7 +672,7 @@ export default function IssueDetails({
                       </span>
                       <div className="flex items-center gap-2">
                         <code className="bg-white/10 px-3 py-1 rounded-lg">
-                          {party.address}
+                          {party}
                         </code>
                         {isEditMode && (
                           <button
@@ -716,7 +716,7 @@ export default function IssueDetails({
                             if (newPartyAddress) {
                               setStagedParties([
                                 ...stagedParties,
-                                { address: newPartyAddress },
+                                newPartyAddress,
                               ]);
                               setNewPartyAddress("");
                             }
