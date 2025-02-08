@@ -444,7 +444,7 @@ export default function IssueDetails({
                       value: parseEther(
                         (
                           mediation.amount +
-                          mediation.parties.length * 0.00001
+                          mediation.parties.length * 0.001
                         ).toString()
                       ),
                       data: "0x" as `0x${string}`,
@@ -747,7 +747,7 @@ export default function IssueDetails({
                 <div className="flex items-center gap-2 mb-4">
                   <UsersRound className="w-5 h-5 text-white" />
                   <h2 className="text-xl font-serif text-white">
-                    Your Party Statement
+                    Your Statement
                   </h2>
                 </div>
                 {party ? (
