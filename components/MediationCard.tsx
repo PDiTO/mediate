@@ -76,7 +76,7 @@ export default function MediationCard({
   return (
     <div
       onClick={() => router.push(`/issue/${mediation._id}`)}
-      className="bg-white/20 backdrop-blur-sm rounded-lg p-6 hover:bg-white/30 transition-all cursor-pointer relative"
+      className="bg-white/20 backdrop-blur-sm rounded-lg p-6 hover:bg-white/30 transition-all cursor-pointer relative flex flex-col min-h-[200px]"
     >
       <div className="flex justify-between items-start mb-4">
         <h3 className="text-xl font-semibold text-white">{mediation.title}</h3>
@@ -84,7 +84,7 @@ export default function MediationCard({
           className={`w-7 h-7 ${statusConfig[mediation.status].color}`}
         />
       </div>
-      <p className="text-white/80 mb-4">{mediation.description}</p>
+      <p className="text-white/80 mb-4 flex-grow">{mediation.description}</p>
       <div className="flex justify-between items-center text-sm text-white/60">
         <div>{format(new Date(mediation.createdAt), "MMM d, yyyy")}</div>
         <div className="flex items-center gap-2">
